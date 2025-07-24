@@ -9,10 +9,7 @@
 
 ---
 
-## 🤔 Why This Structu        await page.fill('#username', 'admin.user');    # Time consuming
-        await page.fill('#password', 'Test!123');      # Multiplied by multiple tests
-        await page.click('#login-button');             # Network calls repeated
-        await page.waitForURL('**/home');              # Every single test!
+## 🤔 Why This Structure?
 
 ### 🏗️ **Recommended Structure**
 ```
@@ -20,25 +17,38 @@ project-playwright/
 ├── 📁 config/              # Centralized configuration management
 │   ├── credentials.ts      # Type-safe user management
 │   ├── urls.ts            # Environment-specific URLs
-│   └── testData.ts        # Test data management
-├── 📁 fixtures/            # Modern dependency injection
-│   └── baseTest.ts        # Custom fixtures & test extensions
+│   └── testConfig.ts      # Test configuration class
+├── 📁 utils/              # Modern dependency injection
+│   └── fixtures.ts        # Individual specialized fixtures
 ├── 📁 pages/               # Enhanced Page Object Model
 │   ├── loginPage.ts       # Individual page objects
-│   ├── homePage.ts        # Feature-specific pages
-│   └── commonPage.ts      # Aggregated page access
+│   └── homePage.ts        # Feature-specific pages
 ├── 📁 setup/               # Global test configuration
 │   └── globalSetup.ts     # Authentication & environment setup
 ├── 📁 tests/               # Test specifications
 │   └── *.spec.ts          # Feature-based test files
-├── 📁 utils/              # Utility functions & helpers
-│   └── helpers.ts         # Reusable utility functions
-└── 📄 playwright.config.ts # Test runner configuration
+├── 📄 playwright.config.ts # Test runner configuration
+├── 📄 package.json        # Project dependencies and scripts
+└── 📄 .env                # Environment variables
 ```
 
 ---
 
 ### 🎯 **The Problems We Solve**
+
+**❌ Traditional Approach Problems:**
+```typescript
+// Every test repeats the same setup - repetitive and inefficient
+test.describe('Product Management', () => {
+    test.beforeEach(async ({ page }) => {
+        await page.goto('https://app.example.com');     // Repeated multiple times
+        await page.fill('#username', 'testuser');       // Time consuming
+        await page.fill('#password', 'SecurePass123');  # Multiplied by multiple tests
+        await page.click('#login-button');              # Network calls repeated
+        await page.waitForURL('**/home');               # Every single test!
+    });
+});
+```
 
 #### ❌ **Traditional Approach Problems:**
 ```
@@ -56,10 +66,10 @@ traditional-playwright/
 **🚨 Real Problems This Creates:**
 1. **Configuration Chaos**: URLs and credentials scattered across 50+ files
 2. **Code Duplication**: Same login code repeated in every test
-3. **Environment Hell**: Changing from staging to production requires editing multiple files
+3. **Environment Management Issues**: Changing from staging to production requires editing multiple files
 4. **No Type Safety**: Runtime errors from typos and missing data
 5. **Team Conflicts**: Multiple developers editing same files causes merge conflicts
-6. **Maintenance Nightmare**: One URL change requires updating dozens of files
+6. **Maintenance Challenges**: One URL change requires updating dozens of files
 
 ---
 
@@ -69,11 +79,11 @@ traditional-playwright/
 
 **❌ What Teams Usually Do:**
 ```typescript
-// Hardcoded everywhere - NIGHTMARE to maintain
+// Hardcoded everywhere - difficult to maintain
 test('login', async ({ page }) => {
-    await page.goto('https://example-app.com');      // Repeated multiple times
-    await page.fill('#username', 'admin.user');      // Hardcoded credentials
-    await page.fill('#password', 'Test!123');        // Security risk
+    await page.goto('https://app.example.com');      // Repeated multiple times
+    await page.fill('#username', 'testuser');        // Hardcoded credentials
+    await page.fill('#password', 'SecurePass123');   // Security risk
 });
 ```
 
@@ -82,35 +92,35 @@ test('login', async ({ page }) => {
 // config/credentials.ts - ONE place to manage all users
 export const CREDENTIALS = {
     admin: {
-        username: process.env.ADMIN_USER || 'admin.user',
-        password: process.env.ADMIN_PASS || 'Test!123'
+        username: process.env.ADMIN_USER || 'testuser',
+        password: process.env.ADMIN_PASS || 'SecurePass123'
     },
     demo: {
-        username: process.env.DEMO_USER || 'demo.user', 
-        password: process.env.DEMO_PASS || 'Demo!123'
+        username: process.env.DEMO_USER || 'demouser', 
+        password: process.env.DEMO_PASS || 'DemoPass456'
     }
 };
 
 // config/urls.ts - ONE place for all environments
 export const URLs = {
-    base: process.env.BASE_URL || 'https://example-app.com',
-    staging: 'https://staging.example-app.com',
-    production: 'https://prod.example-app.com'
+    base: process.env.BASE_URL || 'https://app.example.com',
+    staging: 'https://staging.app.example.com',
+    production: 'https://prod.app.example.com'
 };
 ```
 
-**🎯 Why This Saves Your Life:**
+**🎯 Benefits of This Approach:**
 - **Change Once, Update Everywhere**: Update staging URL in 1 file, affects all tests
-- **Environment Magic**: Switch entire test suite between dev/staging/prod with 1 environment variable
+- **Environment Flexibility**: Switch entire test suite between dev/staging/prod with 1 environment variable
 - **Type Safety**: Catch typos at compile time, not at 3 AM when tests fail
 - **Security**: Sensitive data in environment variables, not hardcoded
 - **Team Peace**: No more merge conflicts on URLs and credentials
 
 ---
 
-#### **2. 🎭 fixtures/ - Dependency Injection Revolution**
+#### **2. 🎭 fixtures/ - Dependency Injection Pattern**
 
-**❌ Traditional TestNG Hell:**
+**❌ Traditional TestNG:**
 ```java
 public class LoginTest extends BaseTest {
     private LoginPage loginPage;
@@ -120,7 +130,7 @@ public class LoginTest extends BaseTest {
     public void setUp() {
         loginPage = new LoginPage(driver);      // Manual object creation
         homePage = new HomePage(driver);        // Repeated everywhere
-        driver.get("https://example-app.com"); // Hardcoded setup
+        driver.get("https://app.example.com"); // Hardcoded setup
     }
     
     @Test
@@ -131,40 +141,60 @@ public class LoginTest extends BaseTest {
 }
 ```
 
-**✅ This Fixture Magic:**
+**✅ This Fixture:**
 ```typescript
-// fixtures/baseTest.ts - Automatic dependency injection
-export const test = base.extend<TestFixtures>({
-    commonPage: async ({ page }, use) => {
-        await page.goto(URLs.base);             // Automatic setup
-        const commonPage = new CommonPage(page); // Automatic creation
-        await use(commonPage);                  // Inject into test
-        // Automatic cleanup happens here
-    }
+// utils/fixtures.ts - Individual specialized fixtures
+import { test as base, expect } from '@playwright/test';
+import { LoginPage } from '../pages/loginPage';
+import { HomePage } from '../pages/homePage';
+import { TestConfig } from '../config/testConfig';
+
+type MyFixtures = {
+  login: LoginPage;
+  home: HomePage;
+  config: TestConfig;
+};
+
+export const test = base.extend<MyFixtures>({
+  config: async ({}, use) => {
+    const config = new TestConfig();           // Configuration management
+    await use(config);
+  },
+  login: async ({ page, config }, use) => {
+    await page.goto(config.baseUrl);          // Automatic navigation
+    const login = new LoginPage(page);
+    await login.loginToThePetstore(config.username, config.password); // Auto-login
+    await use(login);                         // Inject logged-in state
+  },
+  home: async ({ page }, use) => {
+    const home = new HomePage(page);          // Ready-to-use HomePage
+    await use(home);
+  },
 });
 
-// tests/login.spec.ts - Clean, simple tests
-test('login test', async ({ commonPage }) => {
-    await commonPage.login.login('admin');      // Clean dependency injection
-    const result = await commonPage.login.waitForLoginResult();
-    expect(result).toBe('success');
+// tests/petstore.spec.ts - Clean test implementation
+test.describe('@smoke Petstore HomePage Tests', () => {
+  test('navigate to store', async ({ login, home, config }) => {
+    await home.navigateToStore();             // Already logged in!
+    await expect(home.getDashboard()).toContainText('Active Orders');
+  });
 });
 ```
 
-**🎯 Why Fixtures Change Everything:**
-- **Zero Boilerplate**: No more setup/teardown code in every test
-- **Automatic Resource Management**: Objects created and cleaned up automatically
-- **Parallel Safe**: Each test gets its own isolated instances
-- **Type Safe**: Full TypeScript support with autocomplete
-- **Reusable**: Write fixture once, use in 100+ tests
+**🎯 Fixture Benefits:**
+- **Reduced Boilerplate**: Eliminates repetitive setup/teardown code
+- **Automatic Resource Management**: Handles object creation and cleanup
+- **Parallel Execution**: Each test receives isolated instances
+- **Type Safety**: Full TypeScript support with IntelliSense
+- **Code Reusability**: Define once, use across multiple tests
 
 ---
 
-#### **3. 📄 pages/ - CommonPage Aggregator Pattern**
+#### **3. 📄 pages/ - Individual Page Objects Pattern**
 
-**❌ Traditional Import Hell:**
+**❌ Traditional Import Management:**
 ```typescript
-// Every test file looks like this - PAINFUL
+// Every test file looks like this - complex and repetitive
 import { LoginPage } from '../pages/loginPage';
 import { HomePage } from '../pages/homePage';
 import { PetsPage } from '../pages/petsPage';
@@ -182,39 +212,35 @@ test('user flow', async ({ page }) => {
 });
 ```
 
-**✅ This CommonPage Solution:**
+**✅ This Individual Fixtures Solution:**
 ```typescript
-// pages/commonPage.ts - Single aggregator
-export class CommonPage {
-    private readonly loginPage: LoginPage;
-    private readonly homePage: HomePage;
-    private readonly petsPage: PetsPage;
-    
-    constructor(page: Page) {
-        this.loginPage = new LoginPage(page);    // Single page instance
-        this.homePage = new HomePage(page);      // Efficient memory usage
-        this.petsPage = new PetsPage(page);      // Easy maintenance
-    }
-    
-    get login(): LoginPage { return this.loginPage; }
-    get home(): HomePage { return this.homePage; }
-    get pets(): PetsPage { return this.petsPage; }
-}
+// utils/fixtures.ts - Individual page fixtures
+export const test = base.extend<MyFixtures>({
+  login: async ({ page, config }, use) => {
+    await page.goto(config.baseUrl);          // Automatic navigation
+    const login = new LoginPage(page);
+    await login.loginToThePetstore(config.username, config.password); // Auto-login
+    await use(login);                         // Inject logged-in state
+  },
+  home: async ({ page }, use) => {
+    const home = new HomePage(page);          // Ready-to-use HomePage
+    await use(home);
+  },
+});
 
-// tests/userFlow.spec.ts - Beautiful, clean usage
-test('user flow', async ({ commonPage }) => {
-    await commonPage.login.login('admin');       // Fluent interface
-    await commonPage.home.navigateToSection('products'); // Easy to read
-    await commonPage.products.filterProducts('available');   // Single object
+// tests/petstore.spec.ts - Clean test implementation
+test('navigate to store', async ({ login, home, config }) => {
+  await home.navigateToStore();             // Already logged in!
+  await expect(home.getDashboard()).toContainText('Active Orders');
 });
 ```
 
-**🎯 Why CommonPage is Game-Changing:**
-- **Single Import**: Import one object, get access to all pages
-- **Memory Efficient**: Shared page instances, not duplicated
-- **Fluent Interface**: Natural, readable test code
-- **Easy Mocking**: Single object to mock for unit testing
-- **Centralized Control**: All page access through one gateway
+**🎯 Individual Fixtures Benefits:**
+- **Simplified Imports**: Fixtures automatically inject page objects
+- **Automatic Setup**: Each page object ready to use with proper state
+- **Type Safe**: Full TypeScript support with autocomplete
+- **Specialized Purpose**: Each fixture handles specific functionality
+- **Clean Tests**: Focus on business logic, not object creation
 
 ---
 
@@ -222,12 +248,12 @@ test('user flow', async ({ commonPage }) => {
 
 **❌ Traditional Approach - Slow & Wasteful:**
 ```typescript
-// Every test repeats login - KILLS performance
+// Every test repeats login - impacts performance
 test.describe('Product Management', () => {
     test.beforeEach(async ({ page }) => {
-        await page.goto('https://example-app.com');
-        await page.fill('#username', 'admin.user');    // 3-5 seconds per test
-        await page.fill('#password', 'Test!123');      // Multiplied by 200 tests
+        await page.goto('https://app.example.com');
+        await page.fill('#username', 'testuser');      // 3-5 seconds per test
+        await page.fill('#password', 'SecurePass123'); // Multiplied by 200 tests
         await page.click('#login-button');             // = 10-16 minutes wasted
         await page.waitForURL('**/home');              // Every single test!
     });
@@ -251,15 +277,15 @@ async function globalSetup(config: FullConfig) {
     await browser.close();
 }
 
-// All tests start already logged in - INSTANT
+// All tests start already logged in - faster execution
 test('manage products', async ({ page }) => {
     // Test starts immediately - already authenticated!
     // Saves significant time per test across entire test suite!
 });
 ```
 
-**🎯 Why Global Setup is Essential:**
-- **Massive Time Savings**: Significant time saved on every test run
+**🎯 Global Setup Benefits:**
+- **Performance Improvement**: Significant time saved on every test run
 - **Fewer Network Calls**: Reduces flaky test failures
 - **Realistic Testing**: Mirrors real user behavior (users stay logged in)
 - **CI/CD Friendly**: Faster builds, lower compute costs
@@ -278,7 +304,7 @@ test('manage products', async ({ page }) => {
 - Test Writing Speed: **3x faster** (no boilerplate)
 - Debugging Time: **5x faster** (centralized config)
 - Maintenance Time: **10x faster** (single source updates)
-- Environment Changes: **100x faster** (config-driven)
+- Environment Changes: **Streamlined** (config-driven)
 
 **Real Numbers:**
 ```
@@ -320,14 +346,14 @@ npx playwright install
 **2. Create Folder Structure**
 ```bash
 # Create all folders at once
-mkdir config fixtures pages setup tests utils
+mkdir config, pages, setup, tests, utils
 
 # Create core files
-touch playwright.config.ts
-touch config/credentials.ts config/urls.ts config/testData.ts  
-touch fixtures/baseTest.ts
-touch pages/commonPage.ts
-touch setup/globalSetup.ts
+New-Item -Path "playwright.config.ts", "package.json", ".env" -ItemType File
+New-Item -Path "config/credentials.ts", "config/urls.ts", "config/testConfig.ts" -ItemType File
+New-Item -Path "utils/fixtures.ts" -ItemType File
+New-Item -Path "pages/loginPage.ts", "pages/homePage.ts" -ItemType File
+New-Item -Path "setup/globalSetup.ts" -ItemType File
 ```
 
 ---
@@ -337,14 +363,16 @@ touch setup/globalSetup.ts
 **3. Setup Environment Configuration**
 ```bash
 # Create .env file for local development
-echo "BASE_URL=https://example-app.com
-ADMIN_USER=admin.user  
-ADMIN_PASS=Test!123
-DEMO_USER=demo.user
-DEMO_PASS=Demo!123" > .env
+@"
+BASE_URL=https://app.example.com
+ADMIN_USER=testuser  
+ADMIN_PASS=SecurePass123
+DEMO_USER=demouser
+DEMO_PASS=DemoPass456
+"@ | Out-File -FilePath ".env" -Encoding UTF8
 
 # Create .env.example for team sharing
-cp .env .env.example
+Copy-Item ".env" ".env.example"
 ```
 
 **4. Create credentials.ts**
@@ -359,12 +387,12 @@ export interface Credentials {
 
 export const CREDENTIALS: Record<UserRole, Credentials> = {
     admin: {
-        username: process.env.ADMIN_USER || 'admin.user',
-        password: process.env.ADMIN_PASS || 'Test!123'
+        username: process.env.ADMIN_USER || 'testuser',
+        password: process.env.ADMIN_PASS || 'SecurePass123'
     },
     demo: {
-        username: process.env.DEMO_USER || 'demo.user', 
-        password: process.env.DEMO_PASS || 'Demo!123'
+        username: process.env.DEMO_USER || 'demouser', 
+        password: process.env.DEMO_PASS || 'DemoPass456'
     },
     invalid: {
         username: 'invalid.user',
@@ -381,11 +409,30 @@ export function getCredentials(role: UserRole): Credentials {
 }
 ```
 
+**4a. Create TestConfig class**
+```typescript
+// config/testConfig.ts
+import { URLs } from './urls';
+import { CREDENTIALS } from './credentials';
+
+export class TestConfig {
+    readonly baseUrl: string;
+    readonly username: string;
+    readonly password: string;
+    
+    constructor() {
+        this.baseUrl = URLs.base;
+        this.username = CREDENTIALS.admin.username;
+        this.password = CREDENTIALS.admin.password;
+    }
+}
+```
+
 **5. Create urls.ts**
 ```typescript
 // config/urls.ts
 export const URLs = {
-    base: process.env.BASE_URL || 'https://example-app.com',
+    base: process.env.BASE_URL || 'https://app.example.com',
     login: '/login',
     home: '/home', 
     products: '/products',
@@ -405,13 +452,10 @@ export const getFullUrl = (path: string): string => {
 ```typescript
 // pages/loginPage.ts
 import { Page, Locator } from '@playwright/test';
-import { getCredentials, UserRole } from '../config/credentials';
-
-export type LoginResult = 'success' | 'error' | 'timeout';
 
 export class LoginPage {
     private readonly page: Page;
-    private readonly usernameInput: Locator;
+    readonly usernameInput: Locator;
     private readonly passwordInput: Locator;
     private readonly loginButton: Locator;
     
@@ -422,29 +466,11 @@ export class LoginPage {
         this.loginButton = page.getByRole('button', { name: 'Login' });
     }
     
-    async login(role: UserRole = 'admin'): Promise<void> {
-        const credentials = getCredentials(role);
-        await this.usernameInput.fill(credentials.username);
-        await this.passwordInput.fill(credentials.password);
+    async loginToThePetstore(username: string, password: string): Promise<void> {
+        await this.usernameInput.fill(username);
+        await this.passwordInput.fill(password);
         await this.loginButton.click();
-    }
-    
-    async waitForLoginResult(): Promise<LoginResult> {
-        const successIndicator = this.page.getByTestId('navigation__logout');
-        const errorIndicator = this.page.locator('simple-snack-bar');
-        
-        try {
-            await Promise.race([
-                successIndicator.waitFor({ timeout: 5000 }),
-                errorIndicator.waitFor({ timeout: 5000 })
-            ]);
-            
-            if (await successIndicator.isVisible()) return 'success';
-            if (await errorIndicator.isVisible()) return 'error';
-        } catch {
-            return 'timeout';
-        }
-        return 'error';
+        await this.page.waitForURL('**/home'); // Wait for successful login
     }
     
     get errorMessage(): Locator {
@@ -460,13 +486,23 @@ import { Page, Locator } from '@playwright/test';
 
 export class HomePage {
     private readonly page: Page;
-    private readonly logoutButton: Locator;
+    readonly logoutButton: Locator;
     private readonly cardContainer: Locator;
     
     constructor(page: Page) {
         this.page = page;
         this.logoutButton = page.getByTestId('navigation__logout');
         this.cardContainer = page.locator('mat-card');
+    }
+    
+    async navigateToStore(): Promise<void> {
+        const storeCard = this.page.locator('mat-card')
+            .filter({ hasText: 'Store' });
+        await storeCard.click();
+    }
+    
+    getDashboard(): Locator {
+        return this.page.locator('[data-testid="dashboard"]');
     }
     
     async getCardTitleTexts(): Promise<string[]> {
@@ -483,39 +519,6 @@ export class HomePage {
     async logout(): Promise<void> {
         await this.logoutButton.click();
     }
-    
-    get logoutButton(): Locator {
-        return this.logoutButton;
-    }
-}
-```
-
-**8. Create CommonPage Aggregator**
-```typescript
-// pages/commonPage.ts
-import { Page } from '@playwright/test';
-import { LoginPage } from './loginPage';
-import { HomePage } from './homePage';
-
-export class CommonPage {
-    private readonly page: Page;
-    private readonly loginPage: LoginPage;
-    private readonly homePage: HomePage;
-    
-    constructor(page: Page) {
-        this.page = page;
-        this.loginPage = new LoginPage(page);
-        this.homePage = new HomePage(page);
-    }
-    
-    // Getter methods for clean access
-    get login(): LoginPage {
-        return this.loginPage;
-    }
-    
-    get home(): HomePage {
-        return this.homePage;
-    }
 }
 ```
 
@@ -525,28 +528,33 @@ export class CommonPage {
 
 **9. Create Custom Fixtures**
 ```typescript
-// fixtures/baseTest.ts
+// utils/fixtures.ts - Individual specialized fixtures
 import { test as base, expect } from '@playwright/test';
-import { CommonPage } from '../pages/commonPage';
-import { URLs } from '../config/urls';
+import { LoginPage } from '../pages/loginPage';
+import { HomePage } from '../pages/homePage';
+import { TestConfig } from '../config/testConfig';
 
-type TestFixtures = {
-    commonPage: CommonPage;
+type MyFixtures = {
+  login: LoginPage;
+  home: HomePage;
+  config: TestConfig;
 };
 
-export const test = base.extend<TestFixtures>({
-    commonPage: async ({ page }, use) => {
-        await page.goto(URLs.base);
-        const commonPage = new CommonPage(page);
-        await use(commonPage);
-        // Automatic cleanup happens here
-    }
-});
-
-// Global setup for all tests
-test.beforeEach(async ({ page }) => {
-    await page.goto(URLs.base);
-    await expect(page).toHaveTitle('Application Title');
+export const test = base.extend<MyFixtures>({
+  config: async ({}, use) => {
+    const config = new TestConfig();           // Configuration management
+    await use(config);
+  },
+  login: async ({ page, config }, use) => {
+    await page.goto(config.baseUrl);          // Automatic navigation
+    const login = new LoginPage(page);
+    await login.loginToThePetstore(config.username, config.password); // Auto-login
+    await use(login);                         // Inject logged-in state
+  },
+  home: async ({ page }, use) => {
+    const home = new HomePage(page);          // Ready-to-use HomePage
+    await use(home);
+  },
 });
 
 export { expect };
@@ -556,31 +564,25 @@ export { expect };
 ```typescript
 // setup/globalSetup.ts
 import { chromium, FullConfig } from '@playwright/test';
+import { TestConfig } from '../config/testConfig';
 import { LoginPage } from '../pages/loginPage';
-import { getCredentials } from '../config/credentials';
-import { URLs } from '../config/urls';
 
 async function globalSetup(config: FullConfig) {
     console.log('🔄 Setting up global authentication...');
     
-    const credentials = getCredentials('admin');
+    const testConfig = new TestConfig();
     const storageStatePath = config.projects[0].use.storageState as string;
     
     const browser = await chromium.launch({ headless: true });
     const page = await browser.newPage();
     
     try {
+        await page.goto(testConfig.baseUrl);
         const loginPage = new LoginPage(page);
-        await page.goto(URLs.base);
         
-        console.log(`📝 Logging in with user: ${credentials.username}`);
+        console.log(`📝 Logging in with user: ${testConfig.username}`);
         
-        await loginPage.login('admin');
-        const result = await loginPage.waitForLoginResult();
-        
-        if (result !== 'success') {
-            throw new Error('Global setup login failed');
-        }
+        await loginPage.loginToThePetstore(testConfig.username, testConfig.password);
         
         console.log('✅ Login successful, saving authentication state...');
         
@@ -620,7 +622,7 @@ export default defineConfig({
     reporter: 'html',
     
     use: {
-        baseURL: process.env.BASE_URL || 'https://example-app.com',
+        baseURL: process.env.BASE_URL || 'https://app.example.com',
         storageState: 'auth-state.json',
         trace: 'retain-on-failure',
         screenshot: 'only-on-failure',
@@ -639,45 +641,29 @@ export default defineConfig({
 
 **12. Create First Tests**
 ```typescript
-// tests/login.spec.ts
-import { test, expect } from '../fixtures/baseTest';
+// tests/petstore.spec.ts - Clean test implementation using individual fixtures
+import { test, expect } from '../utils/fixtures';
 
-test.describe('Login Tests', () => {
-    test('successful login with admin user', async ({ commonPage }) => {
-        await commonPage.login.login('admin');
-        
-        const result = await commonPage.login.waitForLoginResult();
-        expect(result).toBe('success');
-        
-        // Verify we're on the home page
-        const cardTitles = await commonPage.home.getCardTitleTexts();
+test.describe('@smoke Petstore HomePage Tests', () => {
+    test('navigate to store', async ({ login, home, config }) => {
+        await home.navigateToStore();             // Already logged in!
+        await expect(home.getDashboard()).toContainText('Active Orders');
+    });
+    
+    test('verify user dashboard access', async ({ login, home, config }) => {
+        // Test starts with user already logged in via fixture
+        const cardTitles = await home.getCardTitleTexts();
         expect(cardTitles.length).toBeGreaterThan(0);
         expect(cardTitles).toContain('Products');
     });
     
-    test('failed login with invalid credentials', async ({ commonPage }) => {
-        await commonPage.login.login('invalid');
+    test('test logout functionality', async ({ login, home, config }) => {
+        // User is already logged in via login fixture
+        await expect(home.logoutButton).toBeVisible();
+        await home.logout();
         
-        const result = await commonPage.login.waitForLoginResult();
-        expect(result).toBe('error');
-        
-        await expect(commonPage.login.errorMessage)
-            .toHaveText('Username or password are wrong');
-    });
-    
-    test('verify home page navigation', async ({ commonPage }) => {
-        await commonPage.login.login('admin');
-        
-        const result = await commonPage.login.waitForLoginResult();
-        expect(result).toBe('success');
-        
-        // Test logout functionality
-        await expect(commonPage.home.logoutButton).toBeVisible();
-        
-        const cardTitles = await commonPage.home.getCardTitleTexts();
-        expect(cardTitles).toEqual(
-            expect.arrayContaining(['Products', 'Store inventory'])
-        );
+        // Verify logout was successful
+        await expect(login.usernameInput).toBeVisible();
     });
 });
 ```
@@ -755,8 +741,8 @@ npm run report             # Generate reports
 #### **Environment Testing:**
 ```bash
 # Test different environments
-BASE_URL=https://staging.example-app.com npm test    # Staging
-BASE_URL=https://prod.example-app.com npm test       # Production
+BASE_URL=https://staging.app.example.com npm test    # Staging
+BASE_URL=https://prod.app.example.com npm test       # Production
 ```
 
 ---
@@ -768,7 +754,7 @@ BASE_URL=https://prod.example-app.com npm test       # Production
 - ✅ **Test Writing Speed**: 3x faster than traditional approach
 - ✅ **Maintenance Time**: 10x faster updates
 - ✅ **Environment Flexibility**: Switch environments in seconds
-- ✅ **Team Collaboration**: Zero merge conflicts on configuration
+- ✅ **Team Collaboration**: Reduced merge conflicts on configuration
 - ✅ **Type Safety**: Catch errors at compile time
 - ✅ **Performance**: Tests run 60% faster with global setup
 
@@ -776,11 +762,10 @@ BASE_URL=https://prod.example-app.com npm test       # Production
 ```
 project-playwright/           ✅ Professional structure
 ├── 📁 config/                 ✅ Centralized configuration
-├── 📁 fixtures/               ✅ Modern dependency injection  
+├── 📁 utils/                  ✅ Modern individual fixtures  
 ├── 📁 pages/                  ✅ Clean page objects
 ├── 📁 setup/                  ✅ Global authentication
 ├── 📁 tests/                  ✅ Clean, maintainable tests
-├── 📁 utils/                  ✅ Reusable utilities
 ├── 📄 playwright.config.ts    ✅ Optimized configuration
 ├── 📄 package.json           ✅ Proper scripts
 └── 📄 .env                   ✅ Environment management
