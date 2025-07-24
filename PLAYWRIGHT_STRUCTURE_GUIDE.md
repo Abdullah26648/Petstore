@@ -34,7 +34,7 @@ project-playwright/
 
 ---
 
-### 🎯 **The Problems We Solve**
+### **The Problems We Solve**
 
 **❌ Traditional Approach Problems:**
 ```typescript
@@ -43,9 +43,9 @@ test.describe('Product Management', () => {
     test.beforeEach(async ({ page }) => {
         await page.goto('https://app.example.com');     // Repeated multiple times
         await page.fill('#username', 'testuser');       // Time consuming
-        await page.fill('#password', 'SecurePass123');  # Multiplied by multiple tests
-        await page.click('#login-button');              # Network calls repeated
-        await page.waitForURL('**/home');               # Every single test!
+        await page.fill('#password', 'SecurePass123'); // Multiplied by multiple tests
+        await page.click('#login-button');             // Network calls repeated
+        await page.waitForURL('**/home');               // Repeated in every test
     });
 });
 ```
@@ -73,7 +73,7 @@ traditional-playwright/
 
 ---
 
-### 🚀 **Why This Structure is Different**
+### **Why This Structure is Different**
 
 #### **1. 📁 config/ - Single Source of Truth**
 
@@ -109,12 +109,12 @@ export const URLs = {
 };
 ```
 
-**🎯 Benefits of This Approach:**
+**Benefits of This Approach:**
 - **Change Once, Update Everywhere**: Update staging URL in 1 file, affects all tests
 - **Environment Flexibility**: Switch entire test suite between dev/staging/prod with 1 environment variable
-- **Type Safety**: Catch typos at compile time, not at 3 AM when tests fail
+- **Type Safety**: Catch typos at compile time, not during test execution
 - **Security**: Sensitive data in environment variables, not hardcoded
-- **Team Peace**: No more merge conflicts on URLs and credentials
+- **Team Collaboration**: Eliminates merge conflicts on URLs and credentials
 
 ---
 
@@ -175,13 +175,13 @@ export const test = base.extend<MyFixtures>({
 // tests/petstore.spec.ts - Clean test implementation
 test.describe('@smoke Petstore HomePage Tests', () => {
   test('navigate to store', async ({ login, home, config }) => {
-    await home.navigateToStore();             // Already logged in!
+    await home.navigateToStore();             // User authenticated via fixture
     await expect(home.getDashboard()).toContainText('Active Orders');
   });
 });
 ```
 
-**🎯 Fixture Benefits:**
+**Fixture Benefits:**
 - **Reduced Boilerplate**: Eliminates repetitive setup/teardown code
 - **Automatic Resource Management**: Handles object creation and cleanup
 - **Parallel Execution**: Each test receives isolated instances
@@ -230,12 +230,12 @@ export const test = base.extend<MyFixtures>({
 
 // tests/petstore.spec.ts - Clean test implementation
 test('navigate to store', async ({ login, home, config }) => {
-  await home.navigateToStore();             // Already logged in!
+  await home.navigateToStore();             // User authenticated via fixture
   await expect(home.getDashboard()).toContainText('Active Orders');
 });
 ```
 
-**🎯 Individual Fixtures Benefits:**
+**Individual Fixtures Benefits:**
 - **Simplified Imports**: Fixtures automatically inject page objects
 - **Automatic Setup**: Each page object ready to use with proper state
 - **Type Safe**: Full TypeScript support with autocomplete
@@ -255,7 +255,7 @@ test.describe('Product Management', () => {
         await page.fill('#username', 'testuser');      // 3-5 seconds per test
         await page.fill('#password', 'SecurePass123'); // Multiplied by 200 tests
         await page.click('#login-button');             // = 10-16 minutes wasted
-        await page.waitForURL('**/home');              // Every single test!
+        await page.waitForURL('**/home');              // Repeated in every test
     });
 });
 ```
@@ -279,13 +279,13 @@ async function globalSetup(config: FullConfig) {
 
 // All tests start already logged in - faster execution
 test('manage products', async ({ page }) => {
-    // Test starts immediately - already authenticated!
-    // Saves significant time per test across entire test suite!
+    // Test starts immediately - user authenticated via global setup
+    // Reduces execution time per test across entire test suite
 });
 ```
 
-**🎯 Global Setup Benefits:**
-- **Performance Improvement**: Significant time saved on every test run
+**Global Setup Benefits:**
+- **Performance Improvement**: Reduces time per test execution
 - **Fewer Network Calls**: Reduces flaky test failures
 - **Realistic Testing**: Mirrors real user behavior (users stay logged in)
 - **CI/CD Friendly**: Faster builds, lower compute costs
@@ -301,9 +301,9 @@ test('manage products', async ({ page }) => {
 - Learning Curve: Team training period
 
 **Long-term Savings (after setup):**
-- Test Writing Speed: **3x faster** (no boilerplate)
-- Debugging Time: **5x faster** (centralized config)
-- Maintenance Time: **10x faster** (single source updates)
+- Test Writing Speed: Significantly faster (no boilerplate)
+- Debugging Time: Faster resolution (centralized config)
+- Maintenance Time: Faster updates (single source updates)
 - Environment Changes: **Streamlined** (config-driven)
 
 **Real Numbers:**
@@ -323,7 +323,7 @@ This Approach:
 
 ## 🔨 How We Build
 
-### 🚀 **Step-by-Step Build Process**
+### **Step-by-Step Build Process**
 
 #### **Phase 1: Foundation Setup**
 
@@ -644,7 +644,7 @@ import { test, expect } from '../utils/fixtures';
 
 test.describe('@smoke Petstore HomePage Tests', () => {
     test('navigate to store', async ({ login, home, config }) => {
-        await home.navigateToStore();             // Already logged in!
+        await home.navigateToStore();             // User authenticated via fixture
         await expect(home.getDashboard()).toContainText('Active Orders');
     });
     
@@ -716,7 +716,7 @@ npm run test:debug
 
 ---
 
-### 🎯 **Build Execution Flow**
+### **Build Execution Flow**
 
 #### **Development Workflow:**
 ```bash
@@ -745,31 +745,31 @@ BASE_URL=https://prod.app.example.com npm test       # Production
 
 ---
 
-### 📊 **Build Success Metrics**
+### **Build Success Metrics**
 
 #### **After Following This Guide:**
-- ✅ **Setup Time**: Faster than traditional approach
-- ✅ **Test Writing Speed**: 3x faster than traditional approach
-- ✅ **Maintenance Time**: 10x faster updates
-- ✅ **Environment Flexibility**: Switch environments in seconds
-- ✅ **Team Collaboration**: Reduced merge conflicts on configuration
-- ✅ **Type Safety**: Catch errors at compile time
-- ✅ **Performance**: Tests run 60% faster with global setup
+- **Setup Time**: Faster than traditional approach
+- **Test Writing Speed**: Significantly faster than traditional approach
+- **Maintenance Time**: Faster updates
+- **Environment Flexibility**: Switch environments in seconds
+- **Team Collaboration**: Reduced merge conflicts on configuration
+- **Type Safety**: Catch errors at compile time
+- **Performance**: Tests run faster with global setup
 
 #### **Final Project Structure:**
 ```
-project-playwright/           ✅ Professional structure
-├── 📁 config/                 ✅ Centralized configuration
-├── 📁 utils/                  ✅ Modern individual fixtures  
-├── 📁 pages/                  ✅ Clean page objects
-├── 📁 setup/                  ✅ Global authentication
-├── 📁 tests/                  ✅ Clean, maintainable tests
-├── 📄 playwright.config.ts    ✅ Optimized configuration
-├── 📄 package.json           ✅ Proper scripts
-└── 📄 .env                   ✅ Environment management
+project-playwright/           Professional structure
+├── 📁 config/                 Centralized configuration
+├── 📁 utils/                  Modern individual fixtures  
+├── 📁 pages/                  Clean page objects
+├── 📁 setup/                  Global authentication
+├── 📁 tests/                  Clean, maintainable tests
+├── 📄 playwright.config.ts    Optimized configuration
+├── 📄 package.json           Proper scripts
+└── 📄 .env                   Environment management
 ```
 
-**This structure has a professional, scalable, maintainable Playwright test automation framework! 🚀**
+**This structure provides a professional, scalable, maintainable Playwright test automation framework.**
 
 ---
 
