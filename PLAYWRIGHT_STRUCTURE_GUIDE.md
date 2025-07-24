@@ -363,16 +363,14 @@ New-Item -Path "setup/globalSetup.ts" -ItemType File
 **3. Setup Environment Configuration**
 ```bash
 # Create .env file for local development
-@"
-BASE_URL=https://app.example.com
+echo "BASE_URL=https://app.example.com
 ADMIN_USER=testuser  
 ADMIN_PASS=SecurePass123
 DEMO_USER=demouser
-DEMO_PASS=DemoPass456
-"@ | Out-File -FilePath ".env" -Encoding UTF8
+DEMO_PASS=DemoPass456" > .env
 
 # Create .env.example for team sharing
-Copy-Item ".env" ".env.example"
+cp .env .env.example
 ```
 
 **4. Create credentials.ts**
