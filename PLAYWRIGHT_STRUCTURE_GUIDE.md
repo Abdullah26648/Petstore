@@ -1,720 +1,243 @@
-# 🎯 Playwright Project Structure Guide
-## Why This Structure & How We Build
+# 🎯 Playwright Basic Project Structure
 
----
+## Why This Structure?
 
-## 📋 Table of Contents
-1. [Why This Structure?](#why-this-structure)
-2. [How We Build](#how-we-build)
+### Problems with Traditional Approach
+```
+❌ Hardcoded values scattered everywhere
+❌ Same login code repeated in every test  
+❌ No centralized data management
+❌ Difficult to maintain and update
+❌ Environment changes require editing multiple files
+```
 
----
+### Benefits of This Structure
+```
+✅ Centralized test data in data/ folder
+✅ Reusable page objects in pages/ folder
+✅ Fixtures eliminate code duplication
+✅ Utilities provide common functions
+✅ Easy environment switching
+✅ Clean and maintainable tests
+```
 
-## 🤔 Why This Structure?
+### Key Advantages
+- **fixtures/** - Eliminates repetitive setup code
+- **pages/** - Reusable page objects with clear methods
+- **data/** - Single source of truth for test data
+- **utils/** - Common functions used across tests
+- **tests/** - Clean, focused test files
 
-### 🏗️ **Recommended Structure**
+## Recommended Structure
 ```
 project-playwright/
-├── 📁 config/              # Centralized configuration management
-│   ├── credentials.ts      # Type-safe user management
-│   ├── urls.ts            # Environment-specific URLs
-│   └── testConfig.ts      # Test configuration class
-├── 📁 utils/              # Modern dependency injection
-│   └── fixtures.ts        # Individual specialized fixtures
-├── 📁 pages/               # Enhanced Page Object Model
-│   ├── loginPage.ts       # Individual page objects
-│   └── homePage.ts        # Feature-specific pages
-├── 📁 setup/               # Global test configuration
-│   └── globalSetup.ts     # Authentication & environment setup
-├── 📁 tests/               # Test specifications
-│   └── *.spec.ts          # Feature-based test files
-├── 📄 playwright.config.ts # Test runner configuration
-├── 📄 package.json        # Project dependencies and scripts
-└── 📄 .env                # Environment variables
+├── 📁 fixtures/            # Test fixtures
+├── 📁 pages/               # Page objects
+├── 📁 setup/               # Global setup
+├── 📁 tests/               # Test files
+├── 📁 data/                # Test data
+├── 📁 utils/               # Utilities
+├── 📁 reports/             # Test reports
+├── 📁 assets/              # Test assets
+├── 📄 playwright.config.ts # Config
+├── 📄 package.json         # Dependencies
+├── 📄 .gitignore           # Git ignore
+└── 📄 .env                 # Environment vars
 ```
 
----
+## Quick Setup
 
-### **The Problems We Solve**
-
-**❌ Traditional Approach Problems:**
-```typescript
-// Every test repeats the same setup - repetitive and inefficient
-test.describe('Product Management', () => {
-    test.beforeEach(async ({ page }) => {
-        await page.goto('https://app.example.com');     // Repeated multiple times
-        await page.fill('#username', 'testuser');       // Time consuming
-        await page.fill('#password', 'SecurePass123'); // Multiplied by multiple tests
-        await page.click('#login-button');             // Network calls repeated
-        await page.waitForURL('**/home');               // Repeated in every test
-    });
-});
-```
-
-#### ❌ **Traditional Approach Problems:**
-```
-traditional-playwright/
-├── tests/
-│   ├── login.spec.ts        # Everything mixed together
-│   ├── home.spec.ts         # Hardcoded values everywhere
-│   └── pets.spec.ts         # Repeated setup code
-├── pages/
-│   ├── loginPage.ts         # Scattered configurations
-│   └── homePage.ts          # No dependency management
-└── playwright.config.ts     # Basic configuration only
-```
-
-**🚨 Real Problems This Creates:**
-1. **Configuration Chaos**: URLs and credentials scattered across 50+ files
-2. **Code Duplication**: Same login code repeated in every test
-3. **Environment Management Issues**: Changing from staging to production requires editing multiple files
-4. **No Type Safety**: Runtime errors from typos and missing data
-5. **Team Conflicts**: Multiple developers editing same files causes merge conflicts
-6. **Maintenance Challenges**: One URL change requires updating dozens of files
-
----
-
-### **Why This Structure is Different**
-
-#### **1. 📁 config/ - Single Source of Truth**
-
-**❌ What Teams Usually Do:**
-```typescript
-// Hardcoded everywhere - difficult to maintain
-test('login', async ({ page }) => {
-    await page.goto('https://app.example.com');      // Repeated multiple times
-    await page.fill('#username', 'testuser');        // Hardcoded credentials
-    await page.fill('#password', 'SecurePass123');   // Security risk
-});
-```
-
-**✅ This Approach:**
-```typescript
-// config/credentials.ts - ONE place to manage all users
-export const CREDENTIALS = {
-    admin: {
-        username: process.env.ADMIN_USER || 'testuser',
-        password: process.env.ADMIN_PASS || 'SecurePass123'
-    },
-    demo: {
-        username: process.env.DEMO_USER || 'demouser', 
-        password: process.env.DEMO_PASS || 'DemoPass456'
-    }
-};
-
-// config/urls.ts - ONE place for all environments
-export const URLs = {
-    base: process.env.BASE_URL || 'https://app.example.com',
-    staging: 'https://staging.app.example.com',
-    production: 'https://prod.app.example.com'
-};
-```
-
-**Benefits of This Approach:**
-- **Change Once, Update Everywhere**: Update staging URL in 1 file, affects all tests
-- **Environment Flexibility**: Switch entire test suite between dev/staging/prod with 1 environment variable
-- **Type Safety**: Catch typos at compile time, not during test execution
-- **Security**: Sensitive data in environment variables, not hardcoded
-- **Team Collaboration**: Eliminates merge conflicts on URLs and credentials
-
----
-
-#### **2. 🎭 fixtures/ - Dependency Injection Pattern**
-
-**❌ Traditional TestNG:**
-```java
-public class LoginTest extends BaseTest {
-    private LoginPage loginPage;
-    private HomePage homePage;
-    
-    @BeforeMethod
-    public void setUp() {
-        loginPage = new LoginPage(driver);      // Manual object creation
-        homePage = new HomePage(driver);        // Repeated everywhere
-        driver.get("https://app.example.com"); // Hardcoded setup
-    }
-    
-    @Test
-    public void loginTest() {
-        loginPage.login("admin", "pass");       // Manual everything
-        Assert.assertTrue(homePage.isDisplayed());
-    }
-}
-```
-
-**✅ This Fixture:**
-```typescript
-// utils/fixtures.ts - Individual specialized fixtures
-import { test as base, expect } from '@playwright/test';
-import { LoginPage } from '../pages/loginPage';
-import { HomePage } from '../pages/homePage';
-import { TestConfig } from '../config/testConfig';
-
-type MyFixtures = {
-  login: LoginPage;
-  home: HomePage;
-  config: TestConfig;
-};
-
-export const test = base.extend<MyFixtures>({
-  config: async ({}, use) => {
-    const config = new TestConfig();           // Configuration management
-    await use(config);
-  },
-  login: async ({ page, config }, use) => {
-    await page.goto(config.baseUrl);          // Automatic navigation
-    const login = new LoginPage(page);
-    await login.loginToThePetstore(config.username, config.password); // Auto-login
-    await use(login);                         // Inject logged-in state
-  },
-  home: async ({ page }, use) => {
-    const home = new HomePage(page);          // Ready-to-use HomePage
-    await use(home);
-  },
-});
-
-// tests/petstore.spec.ts - Clean test implementation
-test.describe('@smoke Petstore HomePage Tests', () => {
-  test('navigate to store', async ({ login, home, config }) => {
-    await home.navigateToStore();             // User authenticated via fixture
-    await expect(home.getDashboard()).toContainText('Active Orders');
-  });
-});
-```
-
-**Fixture Benefits:**
-- **Reduced Boilerplate**: Eliminates repetitive setup/teardown code
-- **Automatic Resource Management**: Handles object creation and cleanup
-- **Parallel Execution**: Each test receives isolated instances
-- **Type Safety**: Full TypeScript support with IntelliSense
-- **Code Reusability**: Define once, use across multiple tests
-
----
-
-#### **3. 📄 pages/ - Individual Page Objects Pattern**
-
-**❌ Traditional Import Management:**
-```typescript
-// Every test file looks like this - complex and repetitive
-import { LoginPage } from '../pages/loginPage';
-import { HomePage } from '../pages/homePage';
-import { PetsPage } from '../pages/petsPage';
-import { ProfilePage } from '../pages/profilePage';
-import { SettingsPage } from '../pages/settingsPage';
-
-test('user flow', async ({ page }) => {
-    const loginPage = new LoginPage(page);      // Manual creation everywhere
-    const homePage = new HomePage(page);        // Memory waste
-    const petsPage = new PetsPage(page);        // Hard to maintain
-    
-    await loginPage.login('admin', 'pass');
-    await homePage.navigateToSection('products');
-    await productsPage.filterProducts('available');
-});
-```
-
-**✅ This Individual Fixtures Solution:**
-```typescript
-// utils/fixtures.ts - Individual page fixtures
-export const test = base.extend<MyFixtures>({
-  login: async ({ page, config }, use) => {
-    await page.goto(config.baseUrl);          // Automatic navigation
-    const login = new LoginPage(page);
-    await login.loginToThePetstore(config.username, config.password); // Auto-login
-    await use(login);                         // Inject logged-in state
-  },
-  home: async ({ page }, use) => {
-    const home = new HomePage(page);          // Ready-to-use HomePage
-    await use(home);
-  },
-});
-
-// tests/petstore.spec.ts - Clean test implementation
-test('navigate to store', async ({ login, home, config }) => {
-  await home.navigateToStore();             // User authenticated via fixture
-  await expect(home.getDashboard()).toContainText('Active Orders');
-});
-```
-
-**Individual Fixtures Benefits:**
-- **Simplified Imports**: Fixtures automatically inject page objects
-- **Automatic Setup**: Each page object ready to use with proper state
-- **Type Safe**: Full TypeScript support with autocomplete
-- **Specialized Purpose**: Each fixture handles specific functionality
-- **Clean Tests**: Focus on business logic, not object creation
-
----
-
-#### **4. ⚙️ setup/ - Global Setup Performance**
-
-**❌ Traditional Approach - Slow & Wasteful:**
-```typescript
-// Every test repeats login - impacts performance
-test.describe('Product Management', () => {
-    test.beforeEach(async ({ page }) => {
-        await page.goto('https://app.example.com');
-        await page.fill('#username', 'testuser');      // 3-5 seconds per test
-        await page.fill('#password', 'SecurePass123'); // Multiplied by 200 tests
-        await page.click('#login-button');             // = 10-16 minutes wasted
-        await page.waitForURL('**/home');              // Repeated in every test
-    });
-});
-```
-
-**✅ This Global Setup - Login Once:**
-```typescript
-// setup/globalSetup.ts - Login once for all tests
-async function globalSetup(config: FullConfig) {
-    const browser = await chromium.launch();
-    const page = await browser.newPage();
-    
-    await page.goto(URLs.base);
-    await loginPage.login('admin');                    // Login ONCE
-    
-    await page.context().storageState({               // Save authentication
-        path: 'auth-state.json' 
-    });
-    
-    await browser.close();
-}
-
-// All tests start already logged in - faster execution
-test('manage products', async ({ page }) => {
-    // Test starts immediately - user authenticated via global setup
-    // Reduces execution time per test across entire test suite
-});
-```
-
-**Global Setup Benefits:**
-- **Performance Improvement**: Reduces time per test execution
-- **Fewer Network Calls**: Reduces flaky test failures
-- **Realistic Testing**: Mirrors real user behavior (users stay logged in)
-- **CI/CD Friendly**: Faster builds, lower compute costs
-
----
-
-### 📊 **Real-World Impact**
-
-#### **Time Investment vs. Savings:**
-
-**Initial Investment:**
-- Setup Time: Time to establish structure
-- Learning Curve: Team training period
-
-**Long-term Savings (after setup):**
-- Test Writing Speed: Significantly faster (no boilerplate)
-- Debugging Time: Faster resolution (centralized config)
-- Maintenance Time: Faster updates (single source updates)
-- Environment Changes: **Streamlined** (config-driven)
-
-**Real Numbers:**
-```
-Traditional Approach:
-- Multiple tests × significant setup time each = hours of repeated code
-- Environment change = touching multiple files
-- URL change = updating multiple test files
-
-This Approach: 
-- Multiple tests × minimal setup time = minimal total setup
-- Environment change = update 1 config file  
-- URL change = update 1 config file
-```
-
----
-
-## 🔨 How We Build
-
-### **Step-by-Step Build Process**
-
-#### **Phase 1: Foundation Setup**
-
-**1. Initialize Project**
+### 1. Initialize Project
 ```bash
-# Create project structure
 mkdir project-playwright
 cd project-playwright
-
-# Initialize npm project  
 npm init -y
-
-# Install core dependencies
-npm install -D @playwright/test @types/node typescript dotenv
-
-# Install browsers
+npm install -D @playwright/test @types/node typescript
 npx playwright install
 ```
 
-**2. Create Folder Structure**
+### 2. Create Folders
 ```bash
-# Create all folders at once
-mkdir config, pages, setup, tests, utils
-
-# Create core files
-New-Item -Path "playwright.config.ts", "package.json", ".env" -ItemType File
-New-Item -Path "config/credentials.ts", "config/urls.ts", "config/testConfig.ts" -ItemType File
-New-Item -Path "utils/fixtures.ts" -ItemType File
-New-Item -Path "pages/loginPage.ts", "pages/homePage.ts" -ItemType File
-New-Item -Path "setup/globalSetup.ts" -ItemType File
+mkdir fixtures pages setup tests data utils reports assets
 ```
 
----
+### 3. Basic Files
 
-#### **Phase 2: Configuration Layer**
-
-**3. Setup Environment Configuration**
-```bash
-# Create .env file for local development
-echo "BASE_URL=https://app.example.com
-ADMIN_USER=testuser  
-ADMIN_PASS=SecurePass123
-DEMO_USER=demouser
-DEMO_PASS=DemoPass456" > .env
-
-# Create .env.example for team sharing
-cp .env .env.example
-```
-
-**4. Create credentials.ts**
-```typescript
-// config/credentials.ts
-export type UserRole = 'admin' | 'demo' | 'invalid';
-
-export interface Credentials {
-    username: string;
-    password: string;
-}
-
-export const CREDENTIALS: Record<UserRole, Credentials> = {
-    admin: {
-        username: process.env.ADMIN_USER || 'testuser',
-        password: process.env.ADMIN_PASS || 'SecurePass123'
-    },
-    demo: {
-        username: process.env.DEMO_USER || 'demouser', 
-        password: process.env.DEMO_PASS || 'DemoPass456'
-    },
-    invalid: {
-        username: 'invalid.user',
-        password: 'wrongpassword'
-    }
-};
-
-export function getCredentials(role: UserRole): Credentials {
-    const credentials = CREDENTIALS[role];
-    if (!credentials) {
-        throw new Error(`No credentials found for role: ${role}`);
-    }
-    return credentials;
-}
-```
-
-**4a. Create TestConfig class**
-```typescript
-// config/testConfig.ts
-import { URLs } from './urls';
-import { CREDENTIALS } from './credentials';
-
-export class TestConfig {
-    readonly baseUrl: string;
-    readonly username: string;
-    readonly password: string;
-    
-    constructor() {
-        this.baseUrl = URLs.base;
-        this.username = CREDENTIALS.admin.username;
-        this.password = CREDENTIALS.admin.password;
-    }
-}
-```
-
-**5. Create urls.ts**
-```typescript
-// config/urls.ts
-export const URLs = {
-    base: process.env.BASE_URL || 'https://app.example.com',
-    login: '/login',
-    home: '/home', 
-    products: '/products',
-    profile: '/profile'
-};
-
-export const getFullUrl = (path: string): string => {
-    return URLs.base + path;
-};
-```
-
----
-
-#### **Phase 3: Page Objects**
-
-**6. Create Individual Page Objects**
-```typescript
-// pages/loginPage.ts
-import { Page, Locator } from '@playwright/test';
-
-export class LoginPage {
-    private readonly page: Page;
-    readonly usernameInput: Locator;
-    private readonly passwordInput: Locator;
-    private readonly loginButton: Locator;
-    
-    constructor(page: Page) {
-        this.page = page;
-        this.usernameInput = page.getByRole('textbox', { name: 'Username' });
-        this.passwordInput = page.getByRole('textbox', { name: 'Password' });
-        this.loginButton = page.getByRole('button', { name: 'Login' });
-    }
-    
-    async loginToThePetstore(username: string, password: string): Promise<void> {
-        await this.usernameInput.fill(username);
-        await this.passwordInput.fill(password);
-        await this.loginButton.click();
-        await this.page.waitForURL('**/home'); // Wait for successful login
-    }
-    
-    get errorMessage(): Locator {
-        return this.page.locator('simple-snack-bar');
-    }
-}
-```
-
-**7. Create HomePage**
-```typescript
-// pages/homePage.ts
-import { Page, Locator } from '@playwright/test';
-
-export class HomePage {
-    private readonly page: Page;
-    readonly logoutButton: Locator;
-    private readonly cardContainer: Locator;
-    
-    constructor(page: Page) {
-        this.page = page;
-        this.logoutButton = page.getByTestId('navigation__logout');
-        this.cardContainer = page.locator('mat-card');
-    }
-    
-    async navigateToStore(): Promise<void> {
-        const storeCard = this.page.locator('mat-card')
-            .filter({ hasText: 'Store' });
-        await storeCard.click();
-    }
-    
-    getDashboard(): Locator {
-        return this.page.locator('[data-testid="dashboard"]');
-    }
-    
-    async getCardTitleTexts(): Promise<string[]> {
-        const cardTitles = this.page.locator('mat-card-title');
-        return await cardTitles.allTextContents();
-    }
-    
-    async navigateToSection(section: string): Promise<void> {
-        const sectionCard = this.page.locator('mat-card')
-            .filter({ hasText: section });
-        await sectionCard.click();
-    }
-    
-    async logout(): Promise<void> {
-        await this.logoutButton.click();
-    }
-}
-```
-
----
-
-#### **Phase 4: Fixtures & Global Setup**
-
-**9. Create Custom Fixtures**
-```typescript
-// utils/fixtures.ts - Individual specialized fixtures
-import { test as base, expect } from '@playwright/test';
-import { LoginPage } from '../pages/loginPage';
-import { HomePage } from '../pages/homePage';
-import { TestConfig } from '../config/testConfig';
-
-type MyFixtures = {
-  login: LoginPage;
-  home: HomePage;
-  config: TestConfig;
-};
-
-export const test = base.extend<MyFixtures>({
-  config: async ({}, use) => {
-    const config = new TestConfig();           // Configuration management
-    await use(config);
-  },
-  login: async ({ page, config }, use) => {
-    await page.goto(config.baseUrl);          // Automatic navigation
-    const login = new LoginPage(page);
-    await login.loginToThePetstore(config.username, config.password); // Auto-login
-    await use(login);                         // Inject logged-in state
-  },
-  home: async ({ page }, use) => {
-    const home = new HomePage(page);          // Ready-to-use HomePage
-    await use(home);
-  },
-});
-
-export { expect };
-```
-
-**10. Create Global Setup**
-```typescript
-// setup/globalSetup.ts
-import { chromium, FullConfig } from '@playwright/test';
-import { TestConfig } from '../config/testConfig';
-import { LoginPage } from '../pages/loginPage';
-
-async function globalSetup(config: FullConfig) {
-    console.log('🔄 Setting up global authentication...');
-    
-    const testConfig = new TestConfig();
-    const storageStatePath = config.projects[0].use.storageState as string;
-    
-    const browser = await chromium.launch({ headless: true });
-    const page = await browser.newPage();
-    
-    try {
-        await page.goto(testConfig.baseUrl);
-        const loginPage = new LoginPage(page);
-        
-        console.log(`📝 Logging in with user: ${testConfig.username}`);
-        
-        await loginPage.loginToThePetstore(testConfig.username, testConfig.password);
-        
-        console.log('✅ Login successful, saving authentication state...');
-        
-        await page.context().storageState({ path: storageStatePath });
-        
-        console.log(`💾 Authentication state saved to: ${storageStatePath}`);
-        
-    } catch (error) {
-        console.error('❌ Global setup failed:', error);
-        throw error;
-    } finally {
-        await browser.close();
-    }
-}
-
-export default globalSetup;
-```
-
----
-
-#### **Phase 5: Configuration & Tests**
-
-**11. Setup playwright.config.ts**
-```typescript
-// playwright.config.ts
-import { defineConfig, devices } from '@playwright/test';
-import dotenv from 'dotenv';
-
-dotenv.config();
-
-export default defineConfig({
-    testDir: './tests',
-    fullyParallel: true,
-    forbidOnly: !!process.env.CI,
-    retries: process.env.CI ? 2 : 0,
-    workers: process.env.CI ? 1 : undefined,
-    reporter: 'html',
-    
-    use: {
-        baseURL: process.env.BASE_URL || 'https://app.example.com',
-        storageState: 'auth-state.json',
-        trace: 'retain-on-failure',
-        screenshot: 'only-on-failure',
-        video: 'retain-on-failure'
-    },
-    
-    globalSetup: 'setup/globalSetup.ts',
-    
-    projects: [
-        { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
-        { name: 'firefox', use: { ...devices['Desktop Firefox'] } },
-        { name: 'webkit', use: { ...devices['Desktop Safari'] } }
-    ]
-});
-```
-
-**12. Create First Tests**
-```typescript
-// tests/petstore.spec.ts - Clean test implementation using individual fixtures
-import { test, expect } from '../utils/fixtures';
-
-test.describe('@smoke Petstore HomePage Tests', () => {
-    test('navigate to store', async ({ login, home, config }) => {
-        await home.navigateToStore();             // User authenticated via fixture
-        await expect(home.getDashboard()).toContainText('Active Orders');
-    });
-    
-    test('verify user dashboard access', async ({ login, home, config }) => {
-        // Test starts with user already logged in via fixture
-        const cardTitles = await home.getCardTitleTexts();
-        expect(cardTitles.length).toBeGreaterThan(0);
-        expect(cardTitles).toContain('Products');
-    });
-    
-    test('test logout functionality', async ({ login, home, config }) => {
-        // User is already logged in via login fixture
-        await expect(home.logoutButton).toBeVisible();
-        await home.logout();
-        
-        // Verify logout was successful
-        await expect(login.usernameInput).toBeVisible();
-    });
-});
-```
-
----
-
-#### **Phase 6: Package Scripts & Execution**
-
-**13. Setup Package.json Scripts**
+**package.json**
 ```json
 {
-  "name": "project-playwright",
-  "version": "1.0.0",
   "scripts": {
-    "test": "npx playwright test",
-    "test:headed": "npx playwright test --headed",
-    "test:debug": "npx playwright test --debug",
-    "test:ui": "npx playwright test --ui",
-    "test:chrome": "npx playwright test --project=chromium",
-    "test:firefox": "npx playwright test --project=firefox",
-    "test:safari": "npx playwright test --project=webkit",
-    "test:login": "npx playwright test tests/login.spec.ts",
-    "report": "npx playwright show-report",
-    "install-browsers": "npx playwright install"
+    "test": "playwright test",
+    "test:headed": "playwright test --headed",
+    "test:debug": "playwright test --debug",
+    "report": "playwright show-report"
   },
   "devDependencies": {
     "@playwright/test": "^1.40.0",
     "@types/node": "^20.0.0",
-    "dotenv": "^16.3.1",
     "typescript": "^5.0.0"
   }
 }
 ```
 
-**14. Run Your First Tests**
-```bash
-# Run all tests
-npm test
+**playwright.config.ts**
+```typescript
+import { defineConfig } from '@playwright/test';
 
-# Run tests with browser visible
-npm run test:headed
-
-# Run only login tests
-npm run test:login
-
-# View test report
-npm run report
-
-# Debug failing tests
-npm run test:debug
+export default defineConfig({
+  testDir: './tests',
+  use: {
+    baseURL: 'http://localhost:3000',
+    trace: 'on-first-retry',
+  },
+  projects: [
+    { name: 'chromium', use: { channel: 'chrome' } },
+  ],
+});
 ```
 
----
+**data/testData.json**
+```json
+{
+  "users": {
+    "admin": {
+      "username": "admin",
+      "password": "password123"
+    }
+  }
+}
+```
+
+**utils/dataProvider.ts**
+```typescript
+import * as fs from 'fs';
+import * as path from 'path';
+
+export class DataProvider {
+  static getUser(type: string) {
+    const data = JSON.parse(fs.readFileSync(path.resolve(__dirname, '../data/testData.json'), 'utf8'));
+    return data.users[type];
+  }
+}
+```
+
+**pages/loginPage.ts**
+```typescript
+import { Page } from '@playwright/test';
+
+export class LoginPage {
+  constructor(private page: Page) {}
+
+  async login(username: string, password: string) {
+    await this.page.fill('#username', username);
+    await this.page.fill('#password', password);
+    await this.page.click('#login');
+  }
+}
+```
+
+**fixtures/baseTest.ts**
+```typescript
+import { test as base } from '@playwright/test';
+import { LoginPage } from '../pages/loginPage';
+
+export const test = base.extend<{ loginPage: LoginPage }>({
+  loginPage: async ({ page }, use) => {
+    await use(new LoginPage(page));
+  },
+});
+
+export { expect } from '@playwright/test';
+```
+
+**tests/login.spec.ts**
+```typescript
+import { test, expect } from '../fixtures/baseTest';
+import { DataProvider } from '../utils/dataProvider';
+
+test('login test', async ({ page, loginPage }) => {
+  const user = DataProvider.getUser('admin');
+  await page.goto('/');
+  await loginPage.login(user.username, user.password);
+  await expect(page).toHaveURL('/dashboard');
+});
+```
+
+**.env**
+```
+BASE_URL=http://localhost:3000
+```
+
+### 4. Run Tests
+```bash
+npm test
+```
+
+That's it! Basic structure is ready. Users can enhance as needed.**
+
+After completing the build, verify your implementation:
+
+```bash
+# 1. Structure Validation
+ls -la fixtures/ pages/ setup/ tests/ data/ utils/ reports/ assets/
+
+# 2. TypeScript Compilation
+npm run type-check
+
+# 3. Test Execution
+npm run test:smoke
+
+# 4. Report Generation
+npm run allure:generate
+```
+
+#### **🚨 Common Issues & Solutions**
+
+**Issue**: `DataProvider.getUser is not a function`
+```bash
+# Solution: Ensure proper export in dataProvider.ts
+export class DataProvider {  // Must be 'export class'
+```
+
+**Issue**: `Cannot find module '../fixtures/baseTest'`
+```bash
+# Solution: Check import paths - ensure relative paths are correct
+import { test } from '../fixtures/baseTest';  // Correct path
+```
+
+**Issue**: `storageState file not found`
+```bash
+# Solution: Ensure global setup runs before tests
+# Check playwright.config.ts has: globalSetup: 'setup/globalSetup.ts'
+```
+
+**Issue**: `Authentication failed in global setup`
+```bash
+# Solution: Verify data/loginData.json has correct credentials
+# Check .env file has correct BASE_URL
+```
+
+#### **📊 Success Metrics Tracking**
+
+**Week 1 - Foundation:**
+- [ ] All folders created correctly
+- [ ] TypeScript compilation successful
+- [ ] Basic test execution works
+
+**Week 2 - Implementation:**
+- [ ] All fixtures working properly  
+- [ ] Data provider loading test data
+- [ ] Global setup authenticating successfully
+
+**Week 3 - Optimization:**
+- [ ] Test execution time under 2 minutes for smoke tests
+- [ ] All utilities functioning correctly
+- [ ] Reports generating properly
+
+**Week 4 - Team Adoption:**
+- [ ] Team members can write new tests using fixtures
+- [ ] Environment switching working seamlessly
+- [ ] CI/CD pipeline integrated successfully
 
 ### **Build Execution Flow**
 
@@ -758,15 +281,37 @@ BASE_URL=https://prod.app.example.com npm test       # Production
 
 #### **Final Project Structure:**
 ```
-project-playwright/           Professional structure
-├── 📁 config/                 Centralized configuration
-├── 📁 utils/                  Modern individual fixtures  
-├── 📁 pages/                  Clean page objects
-├── 📁 setup/                  Global authentication
-├── 📁 tests/                  Clean, maintainable tests
-├── 📄 playwright.config.ts    Optimized configuration
-├── 📄 package.json           Proper scripts
-└── 📄 .env                   Environment management
+project-playwright/                    # Professional comprehensive structure
+├── 📁 fixtures/                       # Custom test fixtures
+│   └── baseTest.ts                    # Base test extensions and login operations
+├── 📁 pages/                          # Page Object Model
+│   ├── loginPage.ts                   # Login page actions and elements
+│   └── homePage.ts                    # Home/Dashboard specific actions
+├── 📁 setup/                          # Global setup and teardown
+│   ├── globalSetup.ts                 # Global authentication setup
+│   └── globalTeardown.ts              # Post-test cleanup operations
+├── 📁 tests/                          # Test scenarios and specifications
+│   ├── login.spec.ts                  # Login functionality tests
+│   ├── home.spec.ts                   # Home/Dashboard tests
+│   └── ...                            # Other feature-based test files
+├── 📁 data/                           # External test data sources
+│   └── loginData.json                 # User credentials and test inputs
+├── 📁 utils/                          # Utility functions and helpers
+│   ├── dataProvider.ts                # Load data from JSON/CSV sources
+│   ├── formatOptions.ts               # Date/number/currency formatting
+│   ├── randomDataGenerator.ts         # Generate random test data
+│   └── helpers.ts                     # General-purpose utility functions
+├── 📁 reports/                        # Test reports and results
+│   └── allure-results/                # Allure test results for reporting
+├── 📁 assets/                         # Static assets for testing
+│   ├── images/                        # Test images for upload/validation
+│   ├── documents/                     # Test documents (PDFs, Word docs)
+│   └── mockData/                      # Mock API responses and fixtures
+├── 📄 playwright.config.ts            # Playwright configuration with Allure
+├── 📄 tsconfig.json                   # TypeScript configuration
+├── 📄 package.json                    # Dependencies and npm scripts
+├── 📄 .gitignore                      # Git ignore file for version control
+└── 📄 .env                            # Environment variables
 ```
 
 **This structure provides a professional, scalable, maintainable Playwright test automation framework.**
