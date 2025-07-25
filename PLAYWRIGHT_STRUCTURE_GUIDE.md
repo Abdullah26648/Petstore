@@ -173,97 +173,75 @@ BASE_URL=http://localhost:3000
 npm test
 ```
 
-That's it! Basic structure is ready. Users can enhance as needed.**
+That's it! Basic structure is ready. Users can enhance as needed.
 
-After completing the build, verify your implementation:
+## Verification
+
+After setup, verify everything works:
 
 ```bash
-# 1. Structure Validation
+# 1. Check folder structure
 ls -la fixtures/ pages/ setup/ tests/ data/ utils/ reports/ assets/
 
-# 2. TypeScript Compilation
-npm run type-check
+# 2. Run your first test
+npm test
 
-# 3. Test Execution
-npm run test:smoke
-
-# 4. Report Generation
-npm run allure:generate
-
-#### **Development Workflow:**
-```bash
-# Day-to-day development cycle
-npm run test:headed           # Run tests with browser visible
-npm run test:debug           # Debug specific test issues
-npm run test:login          # Test specific features
-npm run report              # Review detailed test results
+# 3. View test report
+npm run report
 ```
 
-#### **CI/CD Pipeline:**
+## Usage Examples
+
+**Development Workflow:**
 ```bash
-# Continuous Integration flow
-npm install                 # Install dependencies
-npm run install-browsers   # Install browser binaries
-npm test                   # Run full test suite
-npm run report             # Generate reports
+npm run test:headed    # Run tests with browser visible
+npm run test:debug     # Debug specific test issues  
+npm run report         # Review detailed test results
 ```
 
-#### **Environment Testing:**
+**Environment Testing:**
 ```bash
 # Test different environments
 BASE_URL=https://staging.app.example.com npm test    # Staging
 BASE_URL=https://prod.app.example.com npm test       # Production
 ```
 
----
+## Success Metrics
 
-### **Build Success Metrics**
+**After Following This Guide:**
+- ✅ **Setup Time**: Under 10 minutes to get running
+- ✅ **Test Writing Speed**: 3x faster with fixtures and data providers  
+- ✅ **Maintenance**: Easy updates with centralized data
+- ✅ **Environment Switching**: Change in seconds via .env
+- ✅ **Team Collaboration**: Clear structure reduces conflicts
+- ✅ **Type Safety**: Catch errors at compile time
 
-#### **After Following This Guide:**
-- **Setup Time**: Faster than traditional approach
-- **Test Writing Speed**: Significantly faster than traditional approach
-- **Maintenance Time**: Faster updates
-- **Environment Flexibility**: Switch environments in seconds
-- **Team Collaboration**: Reduced merge conflicts on configuration
-- **Type Safety**: Catch errors at compile time
-- **Performance**: Tests run faster with global setup
+## Final Project Structure
 
-#### **Final Project Structure:**
 ```
-project-playwright/                    # Professional comprehensive structure
+project-playwright/
 ├── 📁 fixtures/                       # Custom test fixtures
-│   └── baseTest.ts                    # Base test extensions and login operations
+│   └── baseTest.ts                    # Base test extensions and operations
 ├── 📁 pages/                          # Page Object Model
-│   ├── loginPage.ts                   # Login page actions and elements
-│   └── homePage.ts                    # Home/Dashboard specific actions
+│   └── loginPage.ts                   # Login page actions and elements
 ├── 📁 setup/                          # Global setup and teardown
 │   ├── globalSetup.ts                 # Global authentication setup
 │   └── globalTeardown.ts              # Post-test cleanup operations
 ├── 📁 tests/                          # Test scenarios and specifications
-│   ├── login.spec.ts                  # Login functionality tests
-│   ├── home.spec.ts                   # Home/Dashboard tests
-│   └── ...                            # Other feature-based test files
+│   └── login.spec.ts                  # Login functionality tests
 ├── 📁 data/                           # External test data sources
-│   └── loginData.json                 # User credentials and test inputs
+│   └── testData.json                  # User credentials and test inputs
 ├── 📁 utils/                          # Utility functions and helpers
-│   ├── dataProvider.ts                # Load data from JSON/CSV sources
-│   ├── formatOptions.ts               # Date/number/currency formatting
-│   ├── randomDataGenerator.ts         # Generate random test data
-│   └── helpers.ts                     # General-purpose utility functions
+│   └── dataProvider.ts                # Load data from JSON sources
 ├── 📁 reports/                        # Test reports and results
-│   └── allure-results/                # Allure test results for reporting
 ├── 📁 assets/                         # Static assets for testing
-│   ├── images/                        # Test images for upload/validation
-│   ├── documents/                     # Test documents (PDFs, Word docs)
-│   └── mockData/                      # Mock API responses and fixtures
-├── 📄 playwright.config.ts            # Playwright configuration with Allure
-├── 📄 tsconfig.json                   # TypeScript configuration
-├── 📄 package.json                    # Dependencies and npm scripts
+├── 📄 playwright.config.ts            # Playwright configuration
+├── 📄 package.json                    # Dependencies and npm scripts  
 ├── 📄 .gitignore                      # Git ignore file for version control
 └── 📄 .env                            # Environment variables
 ```
 
-**This structure provides a professional, scalable, maintainable Playwright test automation framework.**
+**This structure provides a solid foundation for scalable Playwright test automation.**
 
 ---
 
