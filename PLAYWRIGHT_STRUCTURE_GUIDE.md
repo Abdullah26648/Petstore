@@ -27,6 +27,11 @@
 - **data/** - Single source of truth for test data
 - **utils/** - Common functions used across tests
 - **tests/** - Clean, focused test files
+- **.env** - Environment-specific configuration (URLs, settings)
+
+### Environment vs Test Data Separation
+- **📁 .env** - Environment configuration (URLs, API keys, environment settings)
+- **📁 data/** - Test business logic (user credentials, test inputs, scenarios)
 
 ## Recommended Structure
 ```
@@ -52,7 +57,7 @@ project-playwright/
 mkdir project-playwright
 cd project-playwright
 npm init -y
-npm install -D @playwright/test @types/node typescript
+npm install -D @playwright/test @types/node typescript dotenv
 npx playwright install
 ```
 
@@ -75,7 +80,8 @@ mkdir fixtures pages setup tests data utils reports assets
   "devDependencies": {
     "@playwright/test": "^1.40.0",
     "@types/node": "^20.0.0",
-    "typescript": "^5.0.0"
+    "typescript": "^5.0.0",
+    "dotenv": "^16.3.1"
   }
 }
 ```
@@ -83,11 +89,14 @@ mkdir fixtures pages setup tests data utils reports assets
 **playwright.config.ts**
 ```typescript
 import { defineConfig } from '@playwright/test';
+import * as dotenv from 'dotenv';
+
+dotenv.config();
 
 export default defineConfig({
   testDir: './tests',
   use: {
-    baseURL: 'http://localhost:3000',
+    baseURL: process.env.BASE_URL || 'http://localhost:3000',
     trace: 'on-first-retry',
   },
   projects: [
@@ -201,10 +210,20 @@ npm run report         # Review detailed test results
 
 **Environment Testing:**
 ```bash
-# Test different environments
+# Test different environments by changing .env or using environment variables
 BASE_URL=https://staging.app.example.com npm test    # Staging
 BASE_URL=https://prod.app.example.com npm test       # Production
+
+# Or update .env file for persistent environment switching
+echo "BASE_URL=https://staging.app.example.com" > .env
+npm test
 ```
+
+### Environment Management Benefits
+- **🔄 Easy Environment Switching**: Change `.env` once, affects all tests
+- **👥 Team Separation**: DevOps manages `.env`, QA manages test data
+- **🚀 CI/CD Friendly**: Different environments use different `.env` files
+- **🔒 Security**: Sensitive environment configs separate from test logic
 
 ## Success Metrics
 
