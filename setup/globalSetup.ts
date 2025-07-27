@@ -1,5 +1,6 @@
 import { chromium, FullConfig } from '@playwright/test';
 import testData from '../data/testData.json';
+import { LoginPage } from '../pages/loginPage';
 
 async function globalSetup(config: FullConfig) {
   console.log('Global Setup: Starting authentication...');
@@ -7,15 +8,14 @@ async function globalSetup(config: FullConfig) {
   const browser = await chromium.launch();
   const context = await browser.newContext();
   const page = await context.newPage();
+  const loginPage = new LoginPage(page);
   
   try {
     // Login once and save authentication state
     const user = testData.users.admin;
     await page.goto(process.env.BASE_URL + '/login');
     
-    await page.fill('#mat-input-0', user.username);
-    await page.fill('#mat-input-1', user.password);
-    await page.click('#login__submit');
+    await loginPage.login(user.username, user.password);
     
     // Wait for navigation after login
     await page.waitForLoadState('networkidle');
@@ -28,9 +28,18 @@ async function globalSetup(config: FullConfig) {
       await context.storageState({ path: 'auth-state.json' });
       console.log('Global Setup: Authentication successful and saved');
     } else {
-      // Login failed - create empty auth state file so fixtures know to handle it
+      // Login failed - get error message for debugging
+      try {
+        const errorMessage = await loginPage.getErrorMessage();
+        console.log('Global Setup: Login failed with error:', errorMessage);
+        console.log('Global Setup: Credentials used - Username:', user.username, 'Password:', user.password);
+      } catch (e) {
+        console.log('Global Setup: Login failed, no error message found');
+      }
+      
+      // Create empty auth state file so fixtures know to handle it
       await context.storageState({ path: 'auth-state.json' });
-      console.log('Global Setup: Login failed, fixtures will handle authentication');
+      console.log('Global Setup: Fixtures will handle authentication');
     }
     
   } catch (error) {

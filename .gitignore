@@ -35,6 +35,7 @@ reports/
 allure-results/
 allure-report/
 coverage/
+test-results/
 
 # OS generated files
 .DS_Store

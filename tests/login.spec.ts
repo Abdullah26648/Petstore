@@ -1,7 +1,7 @@
 import { test, expect } from '../fixtures/baseTest';
 
 test('Login test', async ({ authenticatedPage }) => {
-  // Using fastest approach - global auth (already logged in)
+  // Global auth (already logged in)
   await authenticatedPage.goto('/');
   
   // Verify we're successfully authenticated

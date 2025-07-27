@@ -9,6 +9,7 @@ export default defineConfig({
   use: {
     baseURL: process.env.BASE_URL || 'https://training.testifi.io',
     trace: 'on-first-retry',
+    storageState: 'auth-state.json', // Use saved authentication state
   },
   projects: [
     { name: 'chromium', use: { channel: 'chrome' } },

@@ -22,6 +22,7 @@
   },
   "homepage": "https://github.com/Abdullah26648/Petstore#readme",
   "devDependencies": {
+    "@faker-js/faker": "^9.9.0",
     "@playwright/test": "^1.54.1",
     "@types/node": "^24.1.0",
     "dotenv": "^17.2.1",

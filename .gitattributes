@@ -1,0 +1,22 @@
+# Set default behavior to automatically normalize line endings
+* text=auto
+
+# Force the following filetypes to have CRLF line endings on checkout (Windows)
+*.ts text eol=crlf
+*.js text eol=crlf
+*.json text eol=crlf
+*.md text eol=crlf
+*.txt text eol=crlf
+
+# Force the following filetypes to have LF line endings on checkout
+*.sh text eol=lf
+*.bash text eol=lf
+
+# Denote all files that are truly binary and should not be modified
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.zip binary
+*.tar.gz binary
