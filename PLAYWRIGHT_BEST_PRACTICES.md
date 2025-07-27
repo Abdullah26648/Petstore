@@ -214,13 +214,13 @@ test('with custom env vars', async ({ testEnv }) => {
 
 ## Pattern Summary
 
-| **Use Case** | **Global Setup** | **Fixture** | **Performance Improvement** |
-|--------------|------------------|-------------|----------------------------|
-| **Authentication** | Login once | Load auth state | 50% improvement |
-| **Database** | Create DB once | Clean data per test | 70% improvement |
-| **API Server** | Start server once | Fresh client per test | 80% improvement |
-| **File System** | Create dirs once | Clean workspace per test | 60% improvement |
-| **Environment** | Load config once | Isolate per test | 40% improvement |
+| **Use Case**       | **Global Setup**  | **Fixture**              | **Performance Improvement** |
+|--------------------|-------------------|--------------------------|-----------------------------|
+| **Authentication** | Login once        | Load auth state          | 50% improvement             |
+| **Database**       | Create DB once    | Clean data per test      | 70% improvement             |
+| **API Server**     | Start server once | Fresh client per test    | 80% improvement             |
+| **File System**    | Create dirs once  | Clean workspace per test | 60% improvement             |
+| **Environment**    | Load config once  | Isolate per test         | 40% improvement             |
 
 ## Key Principles
 
