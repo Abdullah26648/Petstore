@@ -2,26 +2,17 @@
 
 ## Why This Structure?
 
-### Problems with Traditional Approach
-```
-❌ Hardcoded values scattered everywhere
-❌ Same login code repeated in every test  
-❌ No centralized data management
-❌ Difficult to maintain and update
-❌ Environment changes require editing multiple files
-```
+### Problems with Traditional Approach vs Benefits
 
-### Benefits of This Structure
-```
-✅ Centralized test data in data/ folder
-✅ Reusable page objects in pages/ folder
-✅ Fixtures eliminate code duplication
-✅ Utilities provide common functions
-✅ Easy environment switching
-✅ Clean and maintainable tests
-```
+| ❌ Traditional Problems                               ✅ This Structure Benefits            |
+|-----------------------------------------------------|----------------------------------------|
+| Hardcoded values scattered everywhere               | Centralized test data in data/ folder  |
+| Same login code repeated in every test              | Fixtures eliminate code duplication    |
+| No centralized data management                      | Reusable page objects in pages/ folder |
+| Difficult to maintain and update                    | Utilities provide common functions     |
+| Environment changes require editing multiple files  | Easy environment switching via .env    |
 
-### Key Advantages
+### Key Components
 - **fixtures/** - Eliminates repetitive setup code
 - **pages/** - Reusable page objects with clear methods
 - **data/** - Single source of truth for test data
