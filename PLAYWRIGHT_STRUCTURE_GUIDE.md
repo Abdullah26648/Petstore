@@ -4,7 +4,7 @@
 
 ### Problems with Traditional Approach vs Benefits
 
-| ❌ Traditional Problems                               ✅ This Structure Benefits            |
+| Traditional Problems                                | This Structure Benefits                |
 |-----------------------------------------------------|----------------------------------------|
 | Hardcoded values scattered everywhere               | Centralized test data in data/ folder  |
 | Same login code repeated in every test              | Fixtures eliminate code duplication    |
