@@ -1,5 +1,5 @@
 import { chromium, FullConfig } from '@playwright/test';
-import { DataProvider } from '../utils/dataProvider';
+import testData from '../data/testData.json';
 
 async function globalSetup(config: FullConfig) {
   console.log('Global Setup: Starting authentication...');
@@ -10,7 +10,7 @@ async function globalSetup(config: FullConfig) {
   
   try {
     // Login once and save authentication state
-    const user = DataProvider.getUser('admin');
+    const user = testData.users.admin;
     await page.goto(process.env.BASE_URL + '/login');
     
     await page.fill('#mat-input-0', user.username);
