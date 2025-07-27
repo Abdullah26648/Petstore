@@ -1,17 +1,10 @@
 import { test, expect } from '../fixtures/baseTest';
-import { DataProvider } from '../utils/dataProvider';
 
-test('login test', async ({ page, loginPage }) => {
-  const user = DataProvider.getUser('admin');
-  await page.goto('/login');
-  await loginPage.login(user.username, user.password);
+test('Login test', async ({ authenticatedPage }) => {
+  // Using fastest approach - global auth (already logged in)
+  await authenticatedPage.goto('/');
   
-  // Wait for navigation after login and check for successful login indicators
-  await page.waitForLoadState('networkidle');
-  
-  // Check if we're redirected away from login page (successful login)
-  await expect(page).not.toHaveURL('/login');
-  
-  // Alternative: Check for elements that appear after successful login
-  // await expect(page.locator('#navigation__logout')).toBeVisible();
+  // Verify we're successfully authenticated
+  await expect(authenticatedPage).not.toHaveURL('/login');
+  await expect(authenticatedPage.locator('h1').first()).toContainText('Testifi Training Environment');
 });
