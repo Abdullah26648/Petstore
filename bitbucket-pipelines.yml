@@ -10,8 +10,12 @@ pipelines:
           - node
         script:
           - npm ci
+          - npx playwright install --with-deps
           - npm run test:ordered
         artifacts:
           - reports/smoke/**
           - reports/positive/**
           - reports/negative/**
+          - tests/**/trace.zip
+          - tests/**/screenshots/**/*.png
+          - tests/**/videos/**/*.webm

@@ -30,22 +30,47 @@ package.json      # NPM scripts and dependencies
    ```
    npm install
    ```
-2. **Run all tests in default mode:**
+2. **Install Playwright browsers:**
+   ```
+   npx playwright install --with-deps
+   ```
+3. **Run all tests in default mode:**
    ```
    npm test
    ```
-3. **Run tests by tag:**
+4. **Run tests by tag:**
    - Smoke tests: `npm run smoke`
    - Positive tests: `npm run positive`
    - Negative tests: `npm run negative`
-4. **Run tests in order (smoke → positive → negative, each sequentially):**
+5. **Run tests in order (smoke → positive → negative, each sequentially):**
    ```
    npm run test:ordered
    ```
    - Each group will run with a single worker for sequential execution.
-5. **View Reports:**
+6. **View Reports:**
    - After running `test:ordered`, open the HTML reports in `reports/smoke`, `reports/positive`, and `reports/negative`.
    - Or run `npm run report` to open the latest report (overwrites previous by default).
+## CI/CD Notes
+
+For CI environments (GitHub Actions, Bitbucket Pipelines), add a step to install Playwright browsers before running tests:
+
+```
+npx playwright install --with-deps
+```
+
+**GitHub Actions:**
+```yaml
+    - name: Install Playwright Browsers
+      run: npx playwright install --with-deps
+```
+
+**Bitbucket Pipelines:**
+```yaml
+    script:
+      - npm ci
+      - npx playwright install --with-deps
+      - npm run test:ordered
+```
 
 ## Tagging and Test Selection
 - Tests are tagged in their titles, e.g.:

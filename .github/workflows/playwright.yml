@@ -23,6 +23,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps
+
       - name: Run Playwright tests (ordered)
         run: npm run test:ordered
 
@@ -35,3 +38,23 @@ jobs:
             reports/smoke
             reports/positive
             reports/negative
+      - name: Upload Playwright Traces
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-traces
+          path: tests/**/trace.zip
+
+      - name: Upload Playwright Screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-screenshots
+          path: tests/**/screenshots/**/*.png
+
+      - name: Upload Playwright Videos
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-videos
+          path: tests/**/videos/**/*.webm
