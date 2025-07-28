@@ -3,7 +3,7 @@
 This repository contains end-to-end (E2E) UI tests for the Petstore application using Playwright. The project is structured for maintainability, scalability, and best practices in test automation.
 
 ## Features
-- **Playwright Test Framework**: Modern E2E testing with fixtures, expect assertions, and parallelization.
+- **Playwright Test Framework**: E2E testing with fixtures, expect assertions, and parallelization.
 - **Page Object Model (POM)**: All UI interactions are encapsulated in page objects for reusability and clarity.
 - **Test Data Management**: Static JSON files are used for negative test scenarios, ensuring deterministic and repeatable tests.
 - **Test Tagging**: Tests are tagged as `@smoke`, `@positive`, or `@negative` for easy selection and reporting.
