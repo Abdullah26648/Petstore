@@ -16,6 +16,6 @@ pipelines:
           - reports/smoke/**
           - reports/positive/**
           - reports/negative/**
-          - tests/**/trace.zip
-          - tests/**/screenshots/**/*.png
-          - tests/**/videos/**/*.webm
+          - test-results/**/*.zip
+          - test-results/**/*.png
+          - test-results/**/*.webm

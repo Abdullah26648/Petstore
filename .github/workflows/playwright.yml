@@ -43,18 +43,18 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: playwright-traces
-          path: tests/**/trace.zip
+          path: test-results/**/*.zip
 
       - name: Upload Playwright Screenshots
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: playwright-screenshots
-          path: tests/**/screenshots/**/*.png
+          path: test-results/**/*.png
 
       - name: Upload Playwright Videos
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: playwright-videos
-          path: tests/**/videos/**/*.webm
+          path: test-results/**/*.webm
