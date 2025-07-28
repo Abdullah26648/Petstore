@@ -277,7 +277,6 @@ async function globalSetup() {
 - 5-20 tests: Add global setup
 - 20+ tests: Multiple fixture types
 
-## Debugging Guidelines
 
 ### Global Setup Logging
 ```typescript
@@ -301,7 +300,35 @@ test.extend({
     await cleanup();
   }
 });
+
 ```
+
+## Scripting Best Practices (as Implemented)
+
+- **Test Tagging & Selection:**
+  - Use tags like `@smoke`, `@positive`, and `@negative` in test titles for easy filtering and targeted runs.
+  - Run specific groups of tests using Playwright's `--grep` CLI flag or npm scripts.
+
+- **Ordered Test Execution:**
+  - Chain npm scripts (e.g., `test:ordered`) to run smoke, positive, and negative tests sequentially for controlled reporting and logical grouping.
+  - Use `--workers=1` to ensure sequential execution when needed.
+
+- **Reporting & Artifacts:**
+  - Generate separate HTML reports for each test group and store them in dedicated folders (e.g., `reports/smoke`, `reports/positive`, `reports/negative`).
+  - Collect and upload all relevant artifacts (reports, traces, screenshots, videos) in CI/CD for debugging and traceability.
+  - Update CI workflows to include all possible artifact locations (e.g., `test-results/` and `reports/`).
+
+- **Consistent Output:**
+  - Use Playwright config and CLI flags to control output directories, ensuring all artifacts are easy to locate and download.
+
+- **Maintainability:**
+  - Keep scripts DRY and maintainable by centralizing logic in `package.json` and using environment variables for flexibility.
+
+- **CI/CD Integration:**
+  - Ensure Playwright browsers are installed in CI before running tests.
+  - Use artifact upload steps in GitHub Actions and Bitbucket Pipelines to collect all reports and debugging assets.
+
+These scripting practices ensure robust, maintainable, and debuggable Playwright automation in both local and CI environments.
 
 ---
 
