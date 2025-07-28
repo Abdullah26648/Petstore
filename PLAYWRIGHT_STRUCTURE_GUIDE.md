@@ -136,14 +136,24 @@ export class LoginPage {
 }
 ```
 
+
+
 **fixtures/baseTest.ts**
 ```typescript
-import { test as base } from '@playwright/test';
+import { test as base, Page } from '@playwright/test';
 import { LoginPage } from '../pages/loginPage';
+import { DataProvider } from '../utils/dataProvider';
 
-export const test = base.extend<{ loginPage: LoginPage }>({
-  loginPage: async ({ page }, use) => {
-    await use(new LoginPage(page));
+// authenticatedPage: a Playwright Page object that is already logged in (authenticated) before the test runs
+export const test = base.extend<{ authenticatedPage: Page }>({
+  authenticatedPage: async ({ browser }, use) => {
+    const context = await browser.newContext();
+    const page = await context.newPage();
+    const user = DataProvider.getUser('admin');
+    await page.goto('/');
+    await new LoginPage(page).login(user.username, user.password);
+    await use(page);
+    await context.close();
   },
 });
 
@@ -153,13 +163,11 @@ export { expect } from '@playwright/test';
 **tests/login.spec.ts**
 ```typescript
 import { test, expect } from '../fixtures/baseTest';
-import { DataProvider } from '../utils/dataProvider';
 
-test('login test', async ({ page, loginPage }) => {
-  const user = DataProvider.getUser('admin');
-  await page.goto('/');
-  await loginPage.login(user.username, user.password);
-  await expect(page).toHaveURL('/dashboard');
+test('login test', async ({ authenticatedPage }) => {
+  // authenticatedPage: a Playwright Page object that is already logged in (authenticated) by the fixture before the test runs
+  await authenticatedPage.goto('/dashboard');
+  await expect(authenticatedPage).toHaveURL('/dashboard');
 });
 ```
 

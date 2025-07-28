@@ -3,7 +3,7 @@ import { Page, Locator } from '@playwright/test';
 export class HomePage {
   // Locators for the home page
   private readonly homeButton: Locator;
-  private readonly logoutButton: Locator;
+  public readonly logoutButton: Locator;
 
   constructor(private page: Page) {
     this.homeButton = this.page.locator('#navigation__home');

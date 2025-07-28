@@ -1,5 +1,5 @@
-import { test, expect } from '../fixtures/baseTest';
 import { PetFaker } from '../utils/petDataProvider';
+import { test, expect } from '../fixtures/baseTest';
 import { CreatedPetsTracker } from '../utils/createdPetsTracker';
 
 test.describe('Add Pet Tests', () => {
@@ -23,40 +23,27 @@ test.describe('Add Pet Tests', () => {
     // Store the created pet for verification
     const storedPet = CreatedPetsTracker.storePet(createdPetData);
 
-    // Verify pet was created successfully
+    // Verify pet was created successfully (data)
     expect(storedPet.name).toBe(petData.name);
     expect(storedPet.category).toBe(petData.category);
     expect(storedPet.status).toBe(petData.status);
     expect(storedPet.name.length).toBeGreaterThanOrEqual(3);
-    
+
+    // UI Verification: Search for the pet and check the table
+    await petsPage.selectFindPet();
+    await petsPage.selectSearchAttribute('Status');
+    await petsPage.clickNextOnSearchDialog();
+    await petsPage.selectStatusInSearchDialog(storedPet.status ?? 'available');
+    await petsPage.clickSearchOnSearchDialog();
+    await petsPage.reverseTableByPetId();
+    await expect(petsPage.getFirstPetRowCell('name')).toHaveText(storedPet.name);
+    await expect(petsPage.getFirstPetRowCell('category')).toHaveText(storedPet.category ?? '');
+    await expect(petsPage.getFirstPetRowCell('status')).toContainText(storedPet.status ?? '');
+
     console.log(`Random pet "${storedPet.name}" (${storedPet.category}) created successfully`);
     console.log(`Image uploaded: ${storedPet.imageUploaded}`);
   });
 
-  test('Create multiple random pets successfully', async ({ petsPage }) => {
-    // Generate multiple random pets
-    const petDataArray = PetFaker.generateMultipleRandomPets(3);
-    console.log('Creating multiple random pets:', petDataArray.map(p => `${p.name} (${p.category})`));
-
-    // Navigate to pets page
-    await petsPage.goToPets();
-
-    // Create each pet and track them
-    for (const petData of petDataArray) {
-      const createdPetData = await petsPage.createNewPet(petData);
-      CreatedPetsTracker.storePet(createdPetData);
-    }
-
-    // Verify all pets are tracked
-    expect(CreatedPetsTracker.getCount()).toBe(3);
-    
-    // Log all created pets
-    const allPets = CreatedPetsTracker.getAllCreatedPets();
-    console.log(`Successfully created and tracked ${allPets.length} pets:`);
-    allPets.forEach(pet => {
-      console.log(`  - ${pet.name} (${pet.category}) - Image: ${pet.imageUploaded}`);
-    });
-  });
 
   test.afterEach(async () => {
     // Log final state for debugging

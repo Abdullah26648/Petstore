@@ -1,3 +1,4 @@
+// ...existing code...
 import { Page, Locator } from '@playwright/test';
 
 export class PetsPage {
@@ -29,6 +30,15 @@ export class PetsPage {
   private readonly closeButton: Locator;
   private readonly createButton: Locator;
 
+  // --- UI Verification Locators ---
+  private readonly searchAttributeSelect: Locator;
+  private readonly searchNextButton: Locator;
+  private readonly searchStatusSelect: Locator;
+  private readonly searchSearchButton: Locator;
+  private readonly petIdHeader: Locator;
+  private readonly petTable: Locator;
+  private readonly petTableRows: Locator;
+
   constructor(private page: Page) {
     this.petsButton = this.page.locator('#navigation__pets');
     this.petsMenuButton = this.page.locator('#menu');
@@ -56,6 +66,15 @@ export class PetsPage {
     // Dialog buttons
     this.closeButton = this.page.locator('.form__actions button:has-text("CLOSE")');
     this.createButton = this.page.locator('.form__actions button:has-text("CREATE")');
+
+    // --- UI Verification Locators ---
+    this.searchAttributeSelect = this.page.locator('#attribute__select');
+    this.searchNextButton = this.page.locator('button[matsteppernext]');
+    this.searchStatusSelect = this.page.locator('#status__select');
+    this.searchSearchButton = this.page.locator('#actions__search');
+    this.petIdHeader = this.page.locator('button.mat-sort-header-button:has-text("Pet Id")');
+    this.petTable = this.page.locator('table.mat-table');
+    this.petTableRows = this.page.locator('#table__pet-row');
   }
   
   async goToPets() {
@@ -77,8 +96,8 @@ export class PetsPage {
   async selectFindPet() {
     await this.openPetsMenu();
     await this.findPetMenuItem.click();
-    // Wait for navigation or modal to appear
-    await this.page.waitForLoadState('networkidle');
+    // Wait for the search dialog container to appear
+    await this.page.waitForSelector('mat-dialog-container', { state: 'visible', timeout: 10000 });
   }
 
   async selectAddNewPet() {
@@ -88,7 +107,7 @@ export class PetsPage {
     await this.addPetDialog.waitFor({ state: 'visible' });
   }
 
-  // Complete pet creation workflow - handles everything in one method
+  // Complete pet creation workflow
   async createNewPet(petData: {
     name: string;
     status?: 'available' | 'pending' | 'sold';
@@ -228,4 +247,75 @@ export class PetsPage {
     await this.page.waitForLoadState('networkidle');
   }
 
+  // --- UI Verification Helpers ---
+
+  // Interact with the search dialog stepper: select attribute, next, select status, search
+  async selectSearchAttribute(attribute: string) {
+    await this.searchAttributeSelect.hover();
+    await this.searchAttributeSelect.click();
+    await this.page.locator(`mat-option:has-text("${attribute}")`).click();
+  }
+
+  async clickNextOnSearchDialog() {
+    await this.searchNextButton.click();
+  }
+
+  async selectStatusInSearchDialog(status: string) {
+    await this.searchStatusSelect.click();
+    // Status options have ids like #select__available, #select__sold, #select__pending
+    const optionId = `#select__${status.toLowerCase()}`;
+    await this.page.locator(optionId).click();
+    // Close the dropdown by pressing Escape (mat-select closes on Escape)
+    await this.page.keyboard.press('Escape');
+    // No overlay wait: rely on Escape to close dropdown and proceed
+  }
+
+  async clickSearchOnSearchDialog() {
+    await this.searchSearchButton.click();
+    await this.petTable.waitFor({ state: 'visible' });
+  }
+
+  async reverseTableByPetId() {
+    await this.petIdHeader.dblclick();
+    await this.page.waitForTimeout(500);
+  }
+
+
+  getFirstPetRowCell(column: 'name' | 'category' | 'status') {
+    // Use unique cell ids for robust access
+    const cellIdMap = {
+      name: '#pet-row__name',
+      category: '#pet-row__category',
+      status: '#pet-row__status',
+    };
+    return this.petTableRows.first().locator(cellIdMap[column]);
+  }
+
+  // Public helpers for negative test
+  public async openGeneralInfoSection() {
+    await this.generalInfoSection.locator('mat-expansion-panel-header').click();
+    await this.generalInfoSection.locator('.mat-expansion-panel-content').waitFor({ state: 'visible' });
+  }
+
+  public async fillPetName(name: string) {
+    await this.petNameField.fill(name);
+  }
+
+  public async isCreateButtonEnabled() {
+    return this.createButton.isEnabled();
+  }
+
+  public async getNameFieldError() {
+    // Looks for a mat-error or .error-message near the name field
+    const error = this.generalInfoSection.locator('.mat-error, .error-message').first();
+    if (await error.isVisible()) {
+      return (await error.textContent())?.trim() || null;
+    }
+    return null;
+  }
+
+  // Public method to get all pet table rows
+  public getPetTableRows() {
+    return this.petTableRows;
+  }
 }

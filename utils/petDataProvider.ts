@@ -9,7 +9,21 @@ export interface PetData {
 }
 
 export class PetFaker {
-  // Define pet types with their corresponding images
+  // Generate a random pet with a forced name (for negative/edge cases)
+  static generateRandomPetWithName(name: string): PetData {
+    const petTypes = Object.keys(this.PET_TYPES) as Array<keyof typeof this.PET_TYPES>;
+    const selectedType = faker.helpers.arrayElement(petTypes);
+    const petConfig = this.PET_TYPES[selectedType];
+    return {
+      name,
+      status: faker.helpers.arrayElement(['available', 'pending', 'sold']),
+      category: selectedType,
+      tags: this.generateValidTags(petConfig.tags),
+      imagePath: faker.helpers.arrayElement(petConfig.images)
+    };
+  }
+  // Define pet types with their corresponding images and tags
+  // Note: Tags are always selected from the corresponding pet type's tag list below (not random words)
   private static readonly PET_TYPES = {
     Dog: {
       images: ['./assets/pet-dog-1.jpg', './assets/pet-dog-2.jpg'],
@@ -68,8 +82,4 @@ export class PetFaker {
     };
   }
 
-  // Generate multiple random pets
-  static generateMultipleRandomPets(count: number): PetData[] {
-    return Array.from({ length: count }, () => this.generateRandomPet());
-  }
 }

@@ -1,11 +1,13 @@
 import { test as base, Page } from '@playwright/test';
 import { LoginPage } from '../pages/loginPage';
 import { PetsPage } from '../pages/petsPage';
+import { HomePage } from '../pages/homePage';
 
 // Extended fixtures that provide reusable test components
 export const test = base.extend<{ 
   loginPage: LoginPage;
   petsPage: PetsPage;
+  homePage: HomePage;
   authenticatedPage: Page; // Regular Page but with authentication loaded
 }>({
   // Regular fixture for login page operations
@@ -17,12 +19,14 @@ export const test = base.extend<{
 
   // Fixture for pets page operations using authenticated page
   petsPage: async ({ authenticatedPage }, use) => {
-    // Navigate to base URL to activate authentication state
-    await authenticatedPage.goto('/');
-    
-    // Create PetsPage instance with authenticated page
+    await authenticatedPage.goto('/pets');
     await use(new PetsPage(authenticatedPage));
-    // Automatic cleanup after test completes
+  },
+
+  // Fixture for home page operations using authenticated page
+  homePage: async ({ authenticatedPage }, use) => {
+    await authenticatedPage.goto('/home');
+    await use(new HomePage(authenticatedPage));
   },
 
   // Fixture that uses saved authentication state from global setup
