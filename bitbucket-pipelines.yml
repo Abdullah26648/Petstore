@@ -1,0 +1,17 @@
+# Bitbucket Pipelines CI for Petstore Playwright Tests
+
+image: node:20
+
+pipelines:
+  default:
+    - step:
+        name: Install and Test
+        caches:
+          - node
+        script:
+          - npm ci
+          - npm run test:ordered
+        artifacts:
+          - reports/smoke/**
+          - reports/positive/**
+          - reports/negative/**
