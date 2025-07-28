@@ -2,7 +2,7 @@ import { test, expect } from '../fixtures/baseTest';
 
 test.describe('List Pets Tests', () => {
 
-  test('List all available pets', async ({  petsPage }) => {
+  test(' [@positive] List all available pets', async ({  petsPage }) => {
     // Navigate to pets page
     await petsPage.goToPets();
 
