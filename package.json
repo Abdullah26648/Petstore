@@ -7,7 +7,11 @@
     "test": "playwright test",
     "test:headed": "playwright test --headed",
     "test:debug": "playwright test --debug",
-    "report": "playwright show-report"
+    "report": "playwright show-report",
+    "smoke": "playwright test --grep @smoke",
+    "positive": "playwright test --grep @positive",
+    "negative": "playwright test --grep @negative",
+    "test:ordered": "npm run smoke -- --workers=1 --reporter html --output=reports/smoke && npm run positive -- --workers=1 --reporter html --output=reports/positive && npm run negative -- --workers=1 --reporter html --output=reports/negative"
   },
   "repository": {
     "type": "git",

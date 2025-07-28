@@ -1,6 +1,6 @@
 import { test, expect } from '../fixtures/baseTest';
 
-test('Login test', async ({ authenticatedPage, homePage }) => {
+test(' [@smoke] [@positive] Login test', async ({ authenticatedPage, homePage }) => {
   // Global auth (already logged in)
   await authenticatedPage.goto('/');
   

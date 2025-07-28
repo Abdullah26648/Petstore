@@ -1,0 +1,9 @@
+{
+  "invalidPet": {
+    "name": "ab",
+    "status": "available",
+    "category": "Dog",
+    "tags": ["loyal"],
+    "imagePath": "./assets/pet-dog-1.jpg"
+  }
+}

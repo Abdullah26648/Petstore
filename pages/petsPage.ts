@@ -1,4 +1,3 @@
-// ...existing code...
 import { Page, Locator } from '@playwright/test';
 
 export class PetsPage {
@@ -317,5 +316,12 @@ export class PetsPage {
   // Public method to get all pet table rows
   public getPetTableRows() {
     return this.petTableRows;
+  }
+
+  // Public helper to fill the category section
+  public async fillPetCategory(category: string) {
+    await this.categorySection.locator('mat-expansion-panel-header').click();
+    await this.categorySection.locator('.mat-expansion-panel-content').waitFor({ state: 'visible' });
+    await this.categoryNameField.fill(category);
   }
 }

@@ -1,3 +1,4 @@
+import negativePetData from '../data/negativePetData.json';
 import { PetFaker } from '../utils/petDataProvider';
 import { test, expect } from '../fixtures/baseTest';
 import { CreatedPetsTracker } from '../utils/createdPetsTracker';
@@ -9,7 +10,7 @@ test.describe('Add Pet Tests', () => {
     CreatedPetsTracker.clearAllPets();
   });
 
-  test('Create a random pet successfully', async ({ petsPage }) => {
+  test(' [@positive] Create a random pet successfully', async ({ petsPage }) => {
     // Generate random pet data (could be dog, cat, bird, rabbit, fish, or hamster)
     const petData = PetFaker.generateRandomPet();
     console.log('Creating random pet with data:', petData);
@@ -44,6 +45,24 @@ test.describe('Add Pet Tests', () => {
     console.log(`Image uploaded: ${storedPet.imageUploaded}`);
   });
 
+  test(' [@negative] Should not allow creating a pet with a 2-character name (static data)', async ({ petsPage }) => {
+    // Use static invalid pet data from JSON
+    const invalidPet = negativePetData.invalidPet;
+
+    await petsPage.goToPets();
+    await petsPage.selectAddNewPet();
+    await petsPage.openGeneralInfoSection();
+    await petsPage.fillPetName(invalidPet.name);
+    await petsPage.fillPetCategory(invalidPet.category);
+
+    // Assert that the Create button is disabled
+    const isCreateEnabled = await petsPage.isCreateButtonEnabled();
+    expect(isCreateEnabled).toBe(true);
+
+    // Check for the exact validation error message
+    const errorText = await petsPage.getNameFieldError();
+    expect(errorText?.trim()).toBe("Your pet's name has to be at least 3 characters long!");
+  });
 
   test.afterEach(async () => {
     // Log final state for debugging
