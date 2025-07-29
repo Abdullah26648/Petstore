@@ -57,7 +57,7 @@ test.describe('Add Pet Tests', () => {
 
     // Assert that the Create button is disabled
     const isCreateEnabled = await petsPage.isCreateButtonEnabled();
-    expect(isCreateEnabled).toBe(true);
+    expect(isCreateEnabled).toBe(false);
 
     // Check for the exact validation error message
     const errorText = await petsPage.getNameFieldError();
