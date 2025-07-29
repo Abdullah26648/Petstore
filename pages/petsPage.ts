@@ -13,9 +13,18 @@ export class PetsPage {
   // Add Pet Dialog locators
   private readonly addPetDialog: Locator;
   private readonly generalInfoSection: Locator;
+  private readonly generalInfoSectionHeader: Locator;
+  private readonly generalInfoSectionContent: Locator;
+  private readonly nameFieldError: Locator;
   private readonly categorySection: Locator;
+  private readonly categorySectionHeader: Locator;
+  private readonly categorySectionContent: Locator;
   private readonly tagsSection: Locator;
+  private readonly tagsSectionHeader: Locator;
+  private readonly tagsSectionContent: Locator;
   private readonly imagesSection: Locator;
+  private readonly imagesSectionHeader: Locator;
+  private readonly imagesSectionContent: Locator;
 
   // Form fields
   private readonly petNameField: Locator;
@@ -23,7 +32,6 @@ export class PetsPage {
   private readonly categoryNameField: Locator;
   private readonly tagNameField: Locator;
   private readonly addTagButton: Locator;
-  private readonly dragDropArea: Locator;
   
   // Dialog buttons
   private readonly closeButton: Locator;
@@ -38,6 +46,9 @@ export class PetsPage {
   private readonly petTable: Locator;
   private readonly petTableRows: Locator;
 
+  private readonly searchAttributeOption: (attribute: string) => Locator;
+  private readonly statusOption: (status: string) => Locator;
+
   constructor(private page: Page) {
     this.petsButton = this.page.locator('#navigation__pets');
     this.petsMenuButton = this.page.locator('#menu');
@@ -50,9 +61,18 @@ export class PetsPage {
     // Add Pet Dialog
     this.addPetDialog = this.page.locator('mat-dialog-container');
     this.generalInfoSection = this.page.locator('mat-expansion-panel').nth(0);
+    this.generalInfoSectionHeader = this.generalInfoSection.locator('mat-expansion-panel-header');
+    this.generalInfoSectionContent = this.generalInfoSection.locator('.mat-expansion-panel-content');
+    this.nameFieldError = this.generalInfoSection.locator('.mat-error, .error-message').first();
     this.categorySection = this.page.locator('mat-expansion-panel').nth(1);
+    this.categorySectionHeader = this.categorySection.locator('mat-expansion-panel-header');
+    this.categorySectionContent = this.categorySection.locator('.mat-expansion-panel-content');
     this.tagsSection = this.page.locator('mat-expansion-panel').nth(2);
+    this.tagsSectionHeader = this.tagsSection.locator('mat-expansion-panel-header');
+    this.tagsSectionContent = this.tagsSection.locator('.mat-expansion-panel-content');
     this.imagesSection = this.page.locator('mat-expansion-panel').nth(3);
+    this.imagesSectionHeader = this.imagesSection.locator('mat-expansion-panel-header');
+    this.imagesSectionContent = this.imagesSection.locator('.mat-expansion-panel-content');
 
     // Form fields
     this.petNameField = this.page.locator('#general_information__pet-name input');
@@ -60,7 +80,6 @@ export class PetsPage {
     this.categoryNameField = this.page.locator('#category__name input');
     this.tagNameField = this.page.locator('#create-tag__name input');
     this.addTagButton = this.page.locator('#create-tag__name button');
-    this.dragDropArea = this.page.locator('#images__drag-drop');
 
     // Dialog buttons
     this.closeButton = this.page.locator('.form__actions button:has-text("CLOSE")');
@@ -74,6 +93,8 @@ export class PetsPage {
     this.petIdHeader = this.page.locator('button.mat-sort-header-button:has-text("Pet Id")');
     this.petTable = this.page.locator('table.mat-table');
     this.petTableRows = this.page.locator('#table__pet-row');
+    this.searchAttributeOption = (attribute: string) => this.page.locator(`mat-option:has-text("${attribute}")`);
+    this.statusOption = (status: string) => this.page.locator(`mat-option:has-text("${status}")`);
   }
   
   async goToPets() {
@@ -135,37 +156,37 @@ export class PetsPage {
     await this.selectAddNewPet();
     
     // Fill general information section
-    await this.generalInfoSection.locator('mat-expansion-panel-header').click();
-    await this.generalInfoSection.locator('.mat-expansion-panel-content').waitFor({ state: 'visible' });
+    await this.generalInfoSectionHeader.click();
+    await this.generalInfoSectionContent.waitFor({ state: 'visible' });
     await this.petNameField.fill(petData.name);
-    
+
     if (petData.status) {
       await this.petStatusDropdown.click();
-      await this.page.locator(`mat-option:has-text("${petData.status}")`).click();
+      await this.statusOption(petData.status).click();
     }
-    
+
     // Fill category section
     if (petData.category) {
-      await this.categorySection.locator('mat-expansion-panel-header').click();
-      await this.categorySection.locator('.mat-expansion-panel-content').waitFor({ state: 'visible' });
+      await this.categorySectionHeader.click();
+      await this.categorySectionContent.waitFor({ state: 'visible' });
       await this.categoryNameField.fill(petData.category);
     }
-    
+
     // Add tags section
     if (petData.tags) {
-      await this.tagsSection.locator('mat-expansion-panel-header').click();
-      await this.tagsSection.locator('.mat-expansion-panel-content').waitFor({ state: 'visible' });
-      
+      await this.tagsSectionHeader.click();
+      await this.tagsSectionContent.waitFor({ state: 'visible' });
+
       for (const tag of petData.tags) {
         await this.tagNameField.fill(tag);
         await this.addTagButton.click();
       }
     }
-    
+
     // Simple drag-and-drop image upload
     if (petData.imagePath) {
-      await this.imagesSection.locator('mat-expansion-panel-header').click();
-      await this.imagesSection.locator('.mat-expansion-panel-content').waitFor({ state: 'visible' });
+      await this.imagesSectionHeader.click();
+      await this.imagesSectionContent.waitFor({ state: 'visible' });
       
       try {
         const fs = require('fs');
@@ -252,7 +273,7 @@ export class PetsPage {
   async selectSearchAttribute(attribute: string) {
     await this.searchAttributeSelect.hover();
     await this.searchAttributeSelect.click();
-    await this.page.locator(`mat-option:has-text("${attribute}")`).click();
+    await this.searchAttributeOption(attribute).click();
   }
 
   async clickNextOnSearchDialog() {
@@ -279,6 +300,61 @@ export class PetsPage {
     await this.page.waitForTimeout(500);
   }
 
+  // --- Public helpers: Form Section Actions ---
+
+  /** General Info Section */
+  public async openGeneralInfoSection() {
+    await this.generalInfoSectionHeader.click();
+    await this.generalInfoSectionContent.waitFor({ state: 'visible' });
+  }
+
+  public async fillPetName(name: string) {
+    await this.petNameField.fill(name);
+  }
+
+  async selectStatus(status: string) {
+    await this.petStatusDropdown.click();
+    await this.statusOption(status).click();
+  }
+
+  public async getNameFieldError() {
+    // Wait for the error message to appear (max 2s)
+    try {
+      await this.nameFieldError.waitFor({ state: 'visible', timeout: 2000 });
+      return (await this.nameFieldError.textContent())?.trim() || null;
+    } catch {
+      return null;
+    }
+  }
+
+  /** Category Section */
+  public async fillPetCategory(category: string) {
+    await this.categorySectionHeader.click();
+    await this.categorySectionContent.waitFor({ state: 'visible' });
+    await this.categoryNameField.fill(category);
+  }
+
+  /** Tags Section */
+  public async fillPetTags(tags: string[]) {
+    await this.tagsSectionHeader.click();
+    await this.tagsSectionContent.waitFor({ state: 'visible' });
+    for (const tag of tags) {
+      await this.tagNameField.fill(tag);
+      await this.addTagButton.click();
+    }
+  }
+
+  /** Images Section */
+  public async openImagesSection() {
+    await this.imagesSectionHeader.click();
+    await this.imagesSectionContent.waitFor({ state: 'visible' });
+  }
+
+  // --- Public helpers: Table & Dialog Actions ---
+
+  public getPetTableRows() {
+    return this.petTableRows;
+  }
 
   getFirstPetRowCell(column: 'name' | 'category' | 'status') {
     // Use unique cell ids for robust access
@@ -290,38 +366,8 @@ export class PetsPage {
     return this.petTableRows.first().locator(cellIdMap[column]);
   }
 
-  // Public helpers for negative test
-  public async openGeneralInfoSection() {
-    await this.generalInfoSection.locator('mat-expansion-panel-header').click();
-    await this.generalInfoSection.locator('.mat-expansion-panel-content').waitFor({ state: 'visible' });
-  }
-
-  public async fillPetName(name: string) {
-    await this.petNameField.fill(name);
-  }
-
   public async isCreateButtonEnabled() {
     return this.createButton.isEnabled();
   }
 
-  public async getNameFieldError() {
-    // Looks for a mat-error or .error-message near the name field
-    const error = this.generalInfoSection.locator('.mat-error, .error-message').first();
-    if (await error.isVisible()) {
-      return (await error.textContent())?.trim() || null;
-    }
-    return null;
-  }
-
-  // Public method to get all pet table rows
-  public getPetTableRows() {
-    return this.petTableRows;
-  }
-
-  // Public helper to fill the category section
-  public async fillPetCategory(category: string) {
-    await this.categorySection.locator('mat-expansion-panel-header').click();
-    await this.categorySection.locator('.mat-expansion-panel-content').waitFor({ state: 'visible' });
-    await this.categoryNameField.fill(category);
-  }
 }

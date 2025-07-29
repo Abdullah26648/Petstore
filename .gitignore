@@ -14,13 +14,14 @@ pnpm-lock.yaml
 .env.test.local
 .env.production.local
 
+
 # Playwright
 test-results/
-playwright-report/
-playwright/.cache/
 /test-results/
+playwright-report/
 /playwright-report/
 /blob-report/
+playwright/.cache/
 /playwright/.cache/
 
 # Test artifacts
@@ -35,7 +36,6 @@ reports/
 allure-results/
 allure-report/
 coverage/
-test-results/
 
 # OS generated files
 .DS_Store

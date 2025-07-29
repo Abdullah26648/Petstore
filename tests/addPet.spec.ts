@@ -53,6 +53,8 @@ test.describe('Add Pet Tests', () => {
     await petsPage.selectAddNewPet();
     await petsPage.openGeneralInfoSection();
     await petsPage.fillPetName(invalidPet.name);
+    await petsPage.selectStatus(invalidPet.status ?? 'available');
+    const errorText = await petsPage.getNameFieldError();
     await petsPage.fillPetCategory(invalidPet.category);
 
     // Assert that the Create button is disabled
@@ -60,7 +62,6 @@ test.describe('Add Pet Tests', () => {
     expect(isCreateEnabled).toBe(false);
 
     // Check for the exact validation error message
-    const errorText = await petsPage.getNameFieldError();
     expect(errorText?.trim()).toBe("Your pet's name has to be at least 3 characters long!");
   });
 
