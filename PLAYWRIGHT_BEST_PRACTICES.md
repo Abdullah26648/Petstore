@@ -332,17 +332,6 @@ These scripting practices ensure robust, maintainable, and debuggable Playwright
 
 ---
 
-### Debugging Artifact Uploads in CI
-
-If you see warnings about missing artifact files (e.g., `.webm` videos), add a debug step before the upload to list all files and confirm their locations:
-
-```yaml
-- name: Debug directory listing
-  run: |
-    pwd
-    find . -type f | sed -e 's/^/FILE: /'
-```
-
 This will help you verify where Playwright is saving artifacts and adjust your upload paths if needed.
 
 ---

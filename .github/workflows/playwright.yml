@@ -29,10 +29,6 @@ jobs:
       - name: Run Playwright tests (ordered)
         run: npm run test:ordered
 
-      - name: Debug directory listing
-        run: |
-          pwd
-          find . -type f | sed -e 's/^/FILE: /'
 
       - name: Upload Playwright Reports
         if: always()
